@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32929.385
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guga.Transformer", "Guga.Transformer\Guga.Transformer.csproj", "{4C4D8C16-3A41-4E33-82F8-D15EA942B13A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guga.Collector", "Guga.Collector\Guga.Collector.csproj", "{E9E63F64-1CB6-4E56-9887-04C7E20E603C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guga.EventHub", "Guga.EventHub\Guga.EventHub.csproj", "{04748FAF-741D-4DB4-89E1-5D489F7347E2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guga.ProcessFlow", "Guga.ProcessFlow\Guga.ProcessFlow.csproj", "{DFC24865-69EB-4CFA-8B91-A2FCF458F8D0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guga.TaskScheduler", "Guga.TaskScheduler\Guga.TaskScheduler.csproj", "{C9EDFFFB-B85B-4FB3-ABEE-A51708F7018E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guga.Core", "Guga.Core\Guga.Core.csproj", "{ECFDCD2F-D2B7-460D-AF68-B4D8AFCB5BA0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4C4D8C16-3A41-4E33-82F8-D15EA942B13A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C4D8C16-3A41-4E33-82F8-D15EA942B13A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C4D8C16-3A41-4E33-82F8-D15EA942B13A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C4D8C16-3A41-4E33-82F8-D15EA942B13A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E9E63F64-1CB6-4E56-9887-04C7E20E603C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E9E63F64-1CB6-4E56-9887-04C7E20E603C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E9E63F64-1CB6-4E56-9887-04C7E20E603C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E9E63F64-1CB6-4E56-9887-04C7E20E603C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04748FAF-741D-4DB4-89E1-5D489F7347E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04748FAF-741D-4DB4-89E1-5D489F7347E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04748FAF-741D-4DB4-89E1-5D489F7347E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04748FAF-741D-4DB4-89E1-5D489F7347E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DFC24865-69EB-4CFA-8B91-A2FCF458F8D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DFC24865-69EB-4CFA-8B91-A2FCF458F8D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DFC24865-69EB-4CFA-8B91-A2FCF458F8D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DFC24865-69EB-4CFA-8B91-A2FCF458F8D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9EDFFFB-B85B-4FB3-ABEE-A51708F7018E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9EDFFFB-B85B-4FB3-ABEE-A51708F7018E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9EDFFFB-B85B-4FB3-ABEE-A51708F7018E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9EDFFFB-B85B-4FB3-ABEE-A51708F7018E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECFDCD2F-D2B7-460D-AF68-B4D8AFCB5BA0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECFDCD2F-D2B7-460D-AF68-B4D8AFCB5BA0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECFDCD2F-D2B7-460D-AF68-B4D8AFCB5BA0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECFDCD2F-D2B7-460D-AF68-B4D8AFCB5BA0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0EF3E1EF-9E23-4BDB-B444-BE4F6EC3182D}
+	EndGlobalSection
+EndGlobal
