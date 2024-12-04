@@ -14,6 +14,11 @@ namespace Guga.Core.Interfaces
         string SignalName { get; set; }
 
         /// <summary>
+        /// 信号编号
+        /// </summary>
+        string SignalCode { get; set; }
+
+        /// <summary>
         /// 所属设备
         /// </summary>
         IDevice Device { get; set; }
@@ -22,7 +27,7 @@ namespace Guga.Core.Interfaces
         /// 获取当前信号所关联的设备
         /// </summary>
         /// <returns></returns>
-        IDevice GetDevice();
+        IDevice? GetDevice();
 
         /// <summary>
         /// 信号值
@@ -30,13 +35,13 @@ namespace Guga.Core.Interfaces
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         object GetValue();
-
         /// <summary>
-        /// 设置信号值
+        /// 信号值
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-       void  SetValue(object obj);
+        void SetValue(object t);
+
     }
 
     public interface IPlcSignal<T> : IPlcSignal
@@ -50,5 +55,7 @@ namespace Guga.Core.Interfaces
         /// 获取信号的值，返回具体的类型 T
         /// </summary>
         new  T GetValue();
+
+        void SetValue(T obj);
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Guga.Core.Enums;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,14 +29,22 @@ namespace Guga.Core.Interfaces
         /// <summary>
         /// 设备类型
         /// </summary>
-        string DeviceType { get; set; }
+        DeviceType DeviceType { get; set; }
 
+        /// <summary>
+        /// Ip地址
+        /// </summary>
+        public string IpAddress { get; set; } 
 
+        /// <summary>
+        /// 端口
+        /// </summary>
+        public int? port { get; set; }
         /// <summary>
         /// 订阅多个信号
         /// </summary>
         /// <param name="signals"></param>
-      public  void SubscribeToSignals(IEnumerable<IPlcSignal> signals);
+        public  void SubscribeToSignals(IEnumerable<IPlcSignal> signals);
 
         /// <summary>
         /// 取消订阅多个信号
@@ -54,5 +63,7 @@ namespace Guga.Core.Interfaces
         /// </summary>
         /// <returns></returns>
         IEnumerable<IPlcSignal> GetSubscribedSignals();
+
+
     }
 }

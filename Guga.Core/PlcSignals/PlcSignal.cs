@@ -18,26 +18,30 @@ namespace Guga.Core.PlcSignals
         /// </summary>
         public string SignalName { get; set; }
         /// <summary>
+        /// 信号编号
+        /// </summary>
+        public string SignalCode { get; set; }
+        /// <summary>
         /// 所属设备
         /// </summary>
-        public IDevice Device { get; set; }
+        public IDevice? Device { get; set; }
         /// <summary>
         /// 信号值
         /// </summary>
         public T Value { get; set; }
+        
         /// <summary>
-        /// 获取信号的值，返回具体的类型 T
+        /// 构造函数
         /// </summary>
         /// <param name="signalName"></param>
         /// <param name="value"></param>
-        /// <param name="device"></param>
-        public PlcSignal(string signalName, T value, IDevice device)
+        public PlcSignal(string signalName, string signalCode, T value)
         {
             SignalName = signalName;
+            SignalCode = signalCode;
             Value = value;
-            Device = device;
+           
         }
-
         /// <summary>
         /// 获取信号值
         /// </summary>
@@ -68,6 +72,13 @@ namespace Guga.Core.PlcSignals
         {
             Value=(T)obj;
         }
+       
+        public override string ToString()
+        {
+            return $"SignalName:{SignalName},Value:{Value}";
+        }
+
+       
     }
 
 }
