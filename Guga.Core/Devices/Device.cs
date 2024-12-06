@@ -1,19 +1,17 @@
 ﻿using Guga.Core.Enums;
 using Guga.Core.Interfaces;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Guga.Transformer.Interfaces;
+using MediatR;
 
 namespace Guga.Core.Devices
 {
     /// <summary>
     /// 设备基础
     /// </summary>
-    public abstract class Device : IDevice
+    public abstract class Device: IDevice, IDeviceRules
     {
+        public IMediator _mediator { get; set; } = null!;
+      
         /// <summary>
         /// 设备ID
         /// </summary>
@@ -29,7 +27,7 @@ namespace Guga.Core.Devices
         /// <summary>
         /// 设备类型
         /// </summary>
-        public virtual DeviceType DeviceType { get; set; } = DeviceType.unknown;
+        public virtual DeviceType DeviceType_ { get; set; } = DeviceType.unknown;
         /// <summary>
         /// IP地址
         /// </summary>
@@ -39,18 +37,14 @@ namespace Guga.Core.Devices
         /// </summary>
         public virtual int? port { get; set; } = null;
 
-        private  HashSet<IPlcSignal> _subscribedSignals;
+        private  HashSet<IPlcSignal> _subscribedSignals = new HashSet<IPlcSignal>();
 
         private readonly object _lockObject = new object();
-
-        protected Device(string deviceId, string deviceName, string deviceCode, DeviceType deviceType)
-        {
-            DeviceId = deviceId;
-            DeviceName = deviceName;
-            DeviceCode = deviceCode;
-            DeviceType = deviceType;
-            _subscribedSignals = new HashSet<IPlcSignal>(); 
-        }
+        /// <summary>
+        /// Mediator
+        /// </summary>
+       
+      
         /// <summary>
         /// 设备订阅信号
         /// </summary>
@@ -78,13 +72,13 @@ namespace Guga.Core.Devices
             {
                 foreach (var signal in signals)
                 {
-                    _subscribedSignals.Remove(signal); // 更高效的删除操作
+                    _subscribedSignals.Remove(signal); 
                 }
             }
         }
 
         /// <summary>
-        /// 更新信号值
+        /// 更新信号值，触发信号改变事件
         /// </summary>
         /// <param name="updatedSignals"></param>
         public virtual void UpdateSignals(IEnumerable<IPlcSignal> updatedSignals)
@@ -106,7 +100,7 @@ namespace Guga.Core.Devices
                
             }
             //设备信号转换业务状态
-            TransformerSignals(_subscribedSignals);
+            SignalChangeEvent();
         }
         /// <summary>
         /// 获取设备的订阅信号
@@ -116,16 +110,31 @@ namespace Guga.Core.Devices
         {
             return _subscribedSignals;
         }
-        /// <summary>
-        /// 根据信号转换设备状态
-        /// </summary>
-        /// <param name="plcSignals"></param>
-        public abstract void TransformerSignals(IEnumerable<IPlcSignal> plcSignals);
+       
 
         public override string ToString()
         {
-            return $"DeviceId:{DeviceId}, DeviceName:{DeviceName}, DeviceCode:{DeviceCode}, DeviceType:{DeviceType}";
+            return $"DeviceId:{DeviceId}, DeviceName:{DeviceName}, DeviceCode:{DeviceCode}, DeviceType:{DeviceType_}";
         }
+        /// <summary>
+        /// 信号改变事件
+        /// </summary>
+        /// <returns></returns>
+        public abstract void SignalChangeEvent();
+
+        /// <summary>
+        /// 获取信号转换业务规则
+        /// </summary>
+        /// <returns></returns>
+        public abstract List<IRule> GetSignalToBusinessRules();
+
+
+        /// <summary>
+        /// 获取业务对象转信号的规则
+        /// </summary>
+        /// <returns></returns>
+        public abstract List<IRule> GetBusinessToSignalRules();
+        
     }
 
 }

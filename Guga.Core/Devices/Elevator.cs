@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Guga.Core.Enums;
+using Guga.Transformer.Interfaces;
+using MediatR;
 
 namespace Guga.Core.Devices
 {
@@ -17,12 +19,19 @@ namespace Guga.Core.Devices
         public bool IsMoving { get; private set; } // 电梯是否在运动
         public bool IsOpenDoor { get; private set; } //是否开门
 
-        public Elevator(string deviceId, string deviceName, string deviceCode)
-            : base(deviceId, deviceName, deviceCode, DeviceType.Elevator)
+       
+
+        public override void SignalChangeEvent()
         {
+            throw new NotImplementedException();
         }
 
-        public override void TransformerSignals(IEnumerable<IPlcSignal> plcSignals)
+        public override List<IRule> GetSignalToBusinessRules()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override List<IRule> GetBusinessToSignalRules()
         {
             throw new NotImplementedException();
         }

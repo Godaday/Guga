@@ -1,5 +1,4 @@
-﻿using Guga.Core.Interfaces;
-using Guga.Transformer.Interfaces;
+﻿using Guga.Transformer.Interfaces;
 
 namespace Guga.Transformer
 {
@@ -10,10 +9,19 @@ namespace Guga.Transformer
     /// <typeparam name="U">转换对象</typeparam>
     public class Rule<T, U>: IRule
     {
+        public Rule(T originObject, U businessObject)
+        {
+            OriginObject = originObject;
+            BusinessObject = businessObject;
+           
+        }
+
         public T OriginObject { get; set; } 
         public U BusinessObject { get; set; } 
         public Func<T, bool> Condition { get; set; } 
         public Action<U> Action { get; set; }
+        
+       
 
         public bool EvaluateCondition()
         {
@@ -22,8 +30,13 @@ namespace Guga.Transformer
 
         public void ExecuteAction()
         {
-            Action(BusinessObject); ;
+            if (EvaluateCondition())
+            {
+                Action(BusinessObject);
+            }
         }
+
+        
     }
 
 }

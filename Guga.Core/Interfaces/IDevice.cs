@@ -29,7 +29,7 @@ namespace Guga.Core.Interfaces
         /// <summary>
         /// 设备类型
         /// </summary>
-        DeviceType DeviceType { get; set; }
+        DeviceType DeviceType_ { get; set; }
 
         /// <summary>
         /// Ip地址
@@ -63,6 +63,7 @@ namespace Guga.Core.Interfaces
         /// </summary>
         /// <returns></returns>
         IEnumerable<IPlcSignal> GetSubscribedSignals();
+
 
 
     }
