@@ -2,6 +2,7 @@
 using Guga.Core.Interfaces;
 using Guga.Transformer.Interfaces;
 using MediatR;
+using System.Collections.Generic;
 
 namespace Guga.Core.Devices
 {
@@ -31,11 +32,11 @@ namespace Guga.Core.Devices
         /// <summary>
         /// IP地址
         /// </summary>
-        public virtual string IpAddress { get; set; } = string.Empty;
+        public virtual string Ip { get; set; } = string.Empty;
         /// <summary>
         /// 端口
         /// </summary>
-        public virtual int? port { get; set; } = null;
+        public virtual int? Port { get; set; } = null;
 
         private  HashSet<IPlcSignal> _subscribedSignals = new HashSet<IPlcSignal>();
 
@@ -81,11 +82,12 @@ namespace Guga.Core.Devices
         /// 更新信号值，触发信号改变事件
         /// </summary>
         /// <param name="updatedSignals"></param>
-        public virtual void UpdateSignals(IEnumerable<IPlcSignal> updatedSignals)
+        public virtual void UpdateSignals(IEnumerable<IPlcSignal>? updatedSignals)
         {
+            IEnumerable < IPlcSignal > signals = updatedSignals ?? this.GetSubscribedSignals();
             lock (_lockObject)
             {
-                foreach (var updatedSignal in updatedSignals)
+                foreach (var updatedSignal in signals)
                 {
                     var signal = _subscribedSignals.FirstOrDefault(s => 
                     s.SignalCode == updatedSignal.SignalCode

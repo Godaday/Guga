@@ -34,12 +34,12 @@ namespace Guga.Core.Interfaces
         /// <summary>
         /// Ip地址
         /// </summary>
-        public string IpAddress { get; set; } 
+        public string Ip { get; set; } 
 
         /// <summary>
         /// 端口
         /// </summary>
-        public int? port { get; set; }
+        public int? Port { get; set; }
         /// <summary>
         /// 订阅多个信号
         /// </summary>

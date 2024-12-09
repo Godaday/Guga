@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Guga.Collector\Guga.Collector.csproj" />
     <ProjectReference Include="..\Guga.Core\Guga.Core.csproj" />
   </ItemGroup>
 

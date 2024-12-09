@@ -14,38 +14,24 @@ namespace Guga.Core.Devices
     /// </summary>
     public class AutomaticDoor : Device
     {
+        /// <summary>
+        ///默认构造函数
+        /// </summary>
         public AutomaticDoor()
         {
             base.DeviceType_ = DeviceType.AutomaticDoor;
         }
 
-        public string DoorStatus { get; private set; } // 门的状态（开/关）
+        public string DoorStatus { get; private set; } = null!; // 门的状态（开/关）
 
         public void SetDoorStatus(string value)
         {
             DoorStatus = value;
         }
         /// <summary>
-        /// 发布信号改变事件
+        /// 定义信号到业务规则
         /// </summary>
-        public override void SignalChangeEvent()
-        {
-            if (_mediator != null)
-            {
-                _mediator.Publish(new SignalsChangedEvent(this.GetSubscribedSignals(), this));
-            }
-            else
-            {
-                throw new Exception("Device property _mediator is null");
-            }
-           
-          
-        }
-        public override string ToString()
-        {
-            return base.ToString()+ " DoorStatus:"+ DoorStatus;
-        }
-
+        /// <returns></returns>
         public override List<IRule> GetSignalToBusinessRules()
         {
             var siganls = this.GetSubscribedSignals();
@@ -74,10 +60,35 @@ namespace Guga.Core.Devices
 
             return rules;
         }
-
+        /// <summary>
+        /// 业务规则到信号的转换
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
         public override List<IRule> GetBusinessToSignalRules()
         {
             throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// 发布信号改变事件
+        /// </summary>
+        public override void SignalChangeEvent()
+        {
+            if (_mediator != null)
+            {
+                _mediator.Publish(new SignalsChangedEvent(this.GetSubscribedSignals(), this));
+            }
+            else
+            {
+                throw new Exception("Device property _mediator is null");
+            }
+
+
+        }
+        public override string ToString()
+        {
+            return base.ToString() + " DoorStatus:" + DoorStatus;
         }
     }
 }
