@@ -29,6 +29,30 @@ namespace Guga.Core.Devices
         /// 设备类型
         /// </summary>
         public virtual DeviceType DeviceType_ { get; set; } = DeviceType.unknown;
+
+
+        /// <summary>
+        /// 设备型号 如西门子 S7-300，不需要的可为空
+        /// </summary>
+        public virtual S7CPUType? S7CPUType_ { get; set; } = null;
+        /// <summary>
+        /// 通信协议
+        /// </summary>
+        public virtual ProtocolType ProtocolType_ { get; set; }
+
+        /// <summary>
+        /// 机架号（s7）
+        /// </summary>
+        public virtual short rack { get; set; }
+        /// <summary>
+        /// 槽号(s7)
+        /// </summary>
+        public virtual short slot { get; set; }
+        /// <summary>
+        /// 读取周期，以毫秒为单位，例如：1000ms
+        /// </summary>
+        public virtual int ReadCycle { get; set; }
+
         /// <summary>
         /// IP地址
         /// </summary>

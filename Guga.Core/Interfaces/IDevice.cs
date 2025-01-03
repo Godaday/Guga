@@ -29,7 +29,25 @@ namespace Guga.Core.Interfaces
         /// <summary>
         /// 设备类型
         /// </summary>
-        DeviceType DeviceType_ { get; set; }
+        DeviceType DeviceType_ { get;  }
+
+        /// <summary>
+        /// 设备型号 如西门子 S7-300，不需要的可为空
+        /// </summary>
+        S7CPUType? S7CPUType_ { get; }
+        /// <summary>
+        /// 通信协议
+        /// </summary>
+        ProtocolType ProtocolType_ { get;  }
+
+        /// <summary>
+        /// 读取周期，以毫秒为单位，例如：1000ms
+        /// </summary>
+        int ReadCycle { get;  } 
+
+
+
+
 
         /// <summary>
         /// Ip地址
@@ -40,6 +58,9 @@ namespace Guga.Core.Interfaces
         /// 端口
         /// </summary>
         public int? Port { get; set; }
+
+
+
         /// <summary>
         /// 订阅多个信号
         /// </summary>

@@ -5,23 +5,81 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Guga.Collector.Services
 {
-    public class SignalCollector
+    public class SignalCollector: ISignalCollector
     {
-        private readonly Timer _timer; // 定时器，触发信号采集
-        public readonly List<Device> _devices; // 所有设备列表
+        private readonly object _lock_ = new();
+        private readonly Dictionary<int,Timer> _timers = new (); // 定时器，触发信号采集
+        public readonly Dictionary<int,List<Device>> groups_= new (); // 刷新频率设备列表
         public readonly PlcConnectionManager _connectionManager;
         private static readonly SemaphoreSlim Semaphore = new SemaphoreSlim(10); // 限制最多10个并发操作
 
 
         public SignalCollector(List<Device> devices,TimeSpan timerSpan)
         {
-            _devices = devices;
+            
+           
             _connectionManager = new PlcConnectionManager(devices);
-            _timer = new Timer(async _ => await CollectSignalsWithConcurrencyLimit(),null, TimeSpan.Zero, timerSpan);
+            //初始化频率-设备分组
+            devices.ForEach(d => AddDevice(d));
+            //初始化定时器
+            foreach (var item in groups_)
+            {
+                AddTimer(item);
+            }
+
+
+
+        }
+
+        private void AddTimer(KeyValuePair<int,List<Device>> keyValuePair)
+        {
+            var readCycle = keyValuePair.Key;
+            TimeSpan timeSpan =TimeSpan.FromMilliseconds(readCycle);
+            if (!_timers.ContainsKey(readCycle))
+            {
+                _timers.Add(readCycle,
+                    new Timer(async _ => 
+                    await CollectSignalsWithConcurrencyLimit(keyValuePair.Value),
+                    null, 
+                    TimeSpan.Zero,
+                    timeSpan
+                    ));
+            }
+        }
+
+        private void AddDevice(Device device)
+        {
+            lock (_lock_)
+            {
+                //没有所属分组则创建个新分组
+                if (!groups_.ContainsKey(device.ReadCycle))
+                {
+                    groups_[device.ReadCycle] = new List<Device>() { device };
+                }
+                else
+                {
+                    groups_[device.ReadCycle].Add(device);
+                }
+            }
+        }
+        private void RemoveDevice(Device device)
+        {
+            lock (_lock_)
+            {
+               
+                if (groups_.ContainsKey(device.ReadCycle))
+                {
+                    groups_[device.ReadCycle].Remove(device); ;
+                }
+                
+            }
+
+
         }
         /// <summary>
         /// 异步并发采集多个设备的信号
@@ -29,7 +87,7 @@ namespace Guga.Collector.Services
         /// <param name="devices">设备列表</param>
         /// <param name="signals">信号列表</param>
         /// <returns></returns>
-        public async Task CollectSignalsWithConcurrencyLimit()
+        public async Task CollectSignalsWithConcurrencyLimit(List<Device> _devices)
         {
             var collectTasks = _devices.Select(async device =>
             {
@@ -56,8 +114,12 @@ namespace Guga.Collector.Services
         public async Task CollectSignalAsync(Device device, IPlcSignal signal)
         {
             var connection = _connectionManager.GetConnection(device);
-            var signalValue = await connection.ReadSignalAsync(signal);
-            signal.SetValue(signalValue);  // 更新信号值
+            var signalResult = await connection.ReadDataAsync(signal);
+            if (signalResult.IsSuccess)
+            {
+                signal.SetValue(signalResult.Data);  // 更新信号值
+            }
+            
            // device.UpdateSignals(new List{ signal });  // 更新设备的信号
         }
         /// <summary>
@@ -70,12 +132,19 @@ namespace Guga.Collector.Services
         {
             // 获取设备的连接
             var connection = _connectionManager.GetConnection(device);
-
+            if (!connection.IsConnected())
+            {
+                await connection.ConnectAsync();
+            }
             // 使用PLC连接采集信号
             foreach (var signal in device.GetSubscribedSignals())
             {
-                var signalValue = await connection.ReadSignalAsync(signal); 
-                signal.SetValue(signalValue); 
+                var signalResult = await connection.ReadDataAsync(signal);
+                if (signalResult.IsSuccess)
+                {
+                    signal.SetValue(signalResult.Data);
+                }
+                
             }
             device.UpdateSignals(device.GetSubscribedSignals());
         }

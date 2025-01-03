@@ -1,7 +1,9 @@
 ﻿using Guga.Collector.Interfaces;
 using Guga.Collector.Models;
 using Guga.Core.Devices;
+using Guga.Core.Enums;
 using Guga.Core.Interfaces;
+using S7.Net;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +20,7 @@ namespace Guga.Collector.Services
         /// <summary>
         /// PLC连接池
         /// </summary>
-        private readonly Dictionary<string, PlcConnection> _connectionPool = new();
+        private readonly Dictionary<string, IDeviceClient> _connectionPool = new();
         
         /// <summary>
         /// 初始化连接管理器
@@ -26,14 +28,32 @@ namespace Guga.Collector.Services
         /// <param name="devices"></param>
         public PlcConnectionManager(List<Device> devices)
         {
-            foreach (var device in devices)
+            // 按照协议类型分组
+            var protocolTypeGroup =devices.GroupBy(x => x.ProtocolType_);
+            foreach(var group in protocolTypeGroup)
             {
-                var connectionKey = $"{device.Ip}:{device.Port}";
-                if (!_connectionPool.ContainsKey(connectionKey))
+                var protocolType = group.Key;
+                var protocolDevices = group.ToList();
+                switch (protocolType)
                 {
-                    _connectionPool[connectionKey] = CreateConnection(device.Ip, device.Port);
+                    case ProtocolType.s7:
+                        foreach (var device in protocolDevices)
+                        {
+                            var connectionKey = $"{device.Ip}:{device.Port}:{device.ProtocolType_}";
+                            if (!_connectionPool.ContainsKey(connectionKey))
+                            {
+                                _connectionPool[connectionKey] = CreateClient(device);
+                            }
+                        }
+                        break;
+                    case ProtocolType.modbus:
+                        //创建modbus连接
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
             }
+            
         }
         /// <summary>
         /// 根据IP和端口获取连接
@@ -41,17 +61,29 @@ namespace Guga.Collector.Services
         /// <param name="ip"></param>
         /// <param name="port"></param>
         /// <returns></returns>
-        public PlcConnection GetConnection(Device device)
+        public IDeviceClient GetConnection(Device device)
         {
-            var connectionKey = $"{device.Ip}:{device.Port}";
-           
-          
+            var connectionKey = $"{device.Ip}:{device.Port}:{device.ProtocolType_}";
+
+
             return _connectionPool.ContainsKey(connectionKey) ? _connectionPool[connectionKey] : null!;
         }
 
-        private PlcConnection CreateConnection(string ip, int? port)
-        {
-            return new PlcConnection(ip, port.GetValueOrDefault());
-        }
+        /// <summary>
+        /// 创建PLC连接客户端
+        /// </summary>
+        /// <param name="device"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        private IDeviceClient CreateClient(Device device)=>
+            device.ProtocolType_ switch
+            {
+                ProtocolType.s7 => new S7Client(device.Ip,(CpuType)device.S7CPUType_!,device.rack,device.slot),
+                //ProtocolType.modbus => new ModbusClient(device),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+
+
+
     }
 }
