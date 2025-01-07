@@ -44,14 +44,14 @@ namespace Guga.Core.Rules
                 {
                     new Rule<IEnumerable<IPlcSignal>, AutomaticDoor>(plcSignals, automaticDoor)
                     {
-                        Condition = (signals) => signals.Any(s => s.SignalCode=="0032"&&s.GetValue().ToString()=="1"),
+                        Condition = (signals) => signals.Any(s => s.Address=="0032"&&s.GetValue().ToString()=="1"),
                         Action = ( door) =>{
                         if(door.DoorStatus!="开") door.SetDoorStatus("开");
                         }
                     },
                     new Rule<IEnumerable<IPlcSignal>, AutomaticDoor>(plcSignals, automaticDoor)
                     {
-                        Condition = (signals) => signals.Any(s => s.SignalCode=="0032"&&s.GetValue().ToString()!="1"),
+                        Condition = (signals) => signals.Any(s => s.Address=="0032"&&s.GetValue().ToString()!="1"),
                         Action = ( door) => {
                         if(door.DoorStatus!="关")door.SetDoorStatus("关");
                         }

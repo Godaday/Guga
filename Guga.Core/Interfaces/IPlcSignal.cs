@@ -8,54 +8,34 @@ namespace Guga.Core.Interfaces
 {
   public interface IPlcSignal
     {
+      
+ 
+        IDevice Device { get; set; }
+      
+
+
+
         /// <summary>
-        /// 信号名称
+        /// 信号名称。
         /// </summary>
         string SignalName { get; set; }
 
         /// <summary>
-        /// 信号编号
+        /// 信号的地址，例如 "DB83.DBD146" 或 "40001"。
         /// </summary>
-        string SignalCode { get; set; }
+        string Address { get; set; }
+
+         object GetValue();
+
+        void SetValue(object value);
 
         /// <summary>
-        /// 所属设备
+        /// 配置信号的属性。
         /// </summary>
-        IDevice Device { get; set; }
-
-        /// <summary>
-        /// 获取当前信号所关联的设备
-        /// </summary>
-        /// <returns></returns>
-        IDevice? GetDevice();
-
-        /// <summary>
-        /// 信号值
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        object GetValue();
-        /// <summary>
-        /// 信号值
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        void SetValue(object t);
-
+        /// <typeparam name="TConfig">配置的具体类型。</typeparam>
+        /// <param name="config">配置信息。</param>
+        void Configure<TConfig>(TConfig config);
     }
 
-    public interface IPlcSignal<T> : IPlcSignal
-    {
-        /// <summary>
-        /// 信号值
-        /// </summary>
-        T Value { get; set; }
-
-        /// <summary>
-        /// 获取信号的值，返回具体的类型 T
-        /// </summary>
-        new  T GetValue();
-
-        void SetValue(T obj);
-    }
+    
 }

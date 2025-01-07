@@ -51,7 +51,7 @@ namespace Guga.Core.Devices
         /// <summary>
         /// 读取周期，以毫秒为单位，例如：1000ms
         /// </summary>
-        public virtual int ReadCycle { get; set; }
+        public virtual int ReadCycle { get; set; } = 2000;
 
         /// <summary>
         /// IP地址
@@ -114,8 +114,8 @@ namespace Guga.Core.Devices
                 foreach (var updatedSignal in signals)
                 {
                     var signal = _subscribedSignals.FirstOrDefault(s => 
-                    s.SignalCode == updatedSignal.SignalCode
-                    &&s.Device.DeviceId==updatedSignal.Device.DeviceId
+                    s.Address == updatedSignal.Address
+                    && s.Device.DeviceId==updatedSignal.Device.DeviceId
                     );
                     if (signal != null)
                     {

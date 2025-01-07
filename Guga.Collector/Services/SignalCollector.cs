@@ -13,16 +13,16 @@ namespace Guga.Collector.Services
     public class SignalCollector: ISignalCollector
     {
         private readonly object _lock_ = new();
-        private readonly Dictionary<int,Timer> _timers = new (); // 定时器，触发信号采集
-        public readonly Dictionary<int,List<Device>> groups_= new (); // 刷新频率设备列表
-        public readonly PlcConnectionManager _connectionManager;
-        private static readonly SemaphoreSlim Semaphore = new SemaphoreSlim(10); // 限制最多10个并发操作
+        private static Dictionary<int,Timer> _timers = new (); // 定时器，触发信号采集
+        public static Dictionary<int,List<Device>> groups_= new (); // 刷新频率设备列表
+        public static PlcConnectionManager _connectionManager;
+        private static  SemaphoreSlim Semaphore; // 限制最N个并发操作
 
 
-        public SignalCollector(List<Device> devices,TimeSpan timerSpan)
+        public SignalCollector(List<Device> devices, int semaphoreSlim_MaxCount=10)
         {
-            
-           
+
+            Semaphore = new SemaphoreSlim(semaphoreSlim_MaxCount);
             _connectionManager = new PlcConnectionManager(devices);
             //初始化频率-设备分组
             devices.ForEach(d => AddDevice(d));
@@ -35,24 +35,54 @@ namespace Guga.Collector.Services
 
 
         }
+        /// <summary>
+        /// 启动所有定时器
+        /// </summary>
+        public void StartTimers()
+        {
 
+            foreach (var item in _timers)
+            {
+               
+                item.Value.Change(0, item.Key );//启动定时器
+            }
+#if DEBUG
+  Console.WriteLine("定时器已启动");
+#endif
+
+        }
+
+        // 停止所有定时器
+        public  void StopAllTimers()
+        {
+            foreach (var timer in _timers)
+            {
+                // 停止每个定时器
+                timer.Value.Change(Timeout.Infinite, Timeout.Infinite);
+               
+            }
+#if DEBUG
+            Console.WriteLine("定时器已关闭");
+#endif
+        }
         private void AddTimer(KeyValuePair<int,List<Device>> keyValuePair)
         {
             var readCycle = keyValuePair.Key;
-            TimeSpan timeSpan =TimeSpan.FromMilliseconds(readCycle);
+        
             if (!_timers.ContainsKey(readCycle))
             {
                 _timers.Add(readCycle,
                     new Timer(async _ => 
                     await CollectSignalsWithConcurrencyLimit(keyValuePair.Value),
-                    null, 
-                    TimeSpan.Zero,
-                    timeSpan
+                    null,
+                    Timeout.Infinite, Timeout.Infinite
+                    //TimeSpan.Zero,
+                    //timeSpan
                     ));
             }
         }
 
-        private void AddDevice(Device device)
+        public void AddDevice(Device device)
         {
             lock (_lock_)
             {
@@ -65,9 +95,12 @@ namespace Guga.Collector.Services
                 {
                     groups_[device.ReadCycle].Add(device);
                 }
+#if DEBUG
+                Console.WriteLine($"采集器添加设备:{device.DeviceName}");
+#endif
             }
         }
-        private void RemoveDevice(Device device)
+        public void RemoveDevice(Device device)
         {
             lock (_lock_)
             {
@@ -76,7 +109,9 @@ namespace Guga.Collector.Services
                 {
                     groups_[device.ReadCycle].Remove(device); ;
                 }
-                
+#if DEBUG
+                Console.WriteLine($"采集器移除设备:{device.DeviceName}");
+#endif
             }
 
 
@@ -137,16 +172,17 @@ namespace Guga.Collector.Services
                 await connection.ConnectAsync();
             }
             // 使用PLC连接采集信号
-            foreach (var signal in device.GetSubscribedSignals())
+
+                       var signals=   device.GetSubscribedSignals();
+                var signalResult = await connection.ReadDataAsync(signals);
+            if (signalResult.IsSuccess)
             {
-                var signalResult = await connection.ReadDataAsync(signal);
-                if (signalResult.IsSuccess)
-                {
-                    signal.SetValue(signalResult.Data);
-                }
-                
-            }
-            device.UpdateSignals(device.GetSubscribedSignals());
+                //device.UpdateSignals(signalResult.Data);
+            }    
+
+
+
+           
         }
     }
 }

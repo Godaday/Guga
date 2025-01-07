@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Guga.Collector.Interfaces;
+﻿using Guga.Collector.Interfaces;
 using Guga.Collector.Models;
 using Guga.Core.Interfaces;
+using Guga.Core.PlcSignals;
 using S7.Net;
+using S7.Net.Types;
 
 namespace Guga.Collector
 {
@@ -66,21 +64,42 @@ namespace Guga.Collector
 
         public async Task<OperationResult<object>> ReadDataAsync(IPlcSignal plcSignal)
         {
-            if (!IsConnected())
+
+            if (plcSignal is S7Signal s7Signal)
             {
-                return OperationResult<object>.Failure("设备未连接，无法读取数据。");
+                if (!IsConnected())
+                {
+                    return OperationResult<object>.Failure("设备未连接，无法读取数据。");
+                }
+                try
+                {
+                    List<DataItem> dataItems = new List<DataItem>{
+                        new DataItem
+    {
+        DataType = s7Signal.S7DataType,
+        VarType = s7Signal.S7VarType,
+        DB = s7Signal.DB,
+        BitAdr = s7Signal.BitAdr,
+        Count = s7Signal.Count,
+        StartByteAdr = s7Signal.StartByteAdr,
+        Value =new object() // 或者初始化为适合的数据类型
+    }};
+
+                    await _plc.ReadMultipleVarsAsync(dataItems);
+                    plcSignal.SetValue(dataItems.FirstOrDefault()!.Value);
+                    return OperationResult<object>.Success(plcSignal);
+                }
+                catch (Exception ex)
+                {
+                    return OperationResult<object>.Failure($"读取信号 '{plcSignal.SignalName}' 数据失败: {ex.Message}");
+                }
+            }
+            else
+            {
+                return OperationResult<object>.Failure("不支持的信号类型。");
             }
 
-            try
-            {
-                var result = await Task.Run(() => _plc.Read(plcSignal.SignalCode));
-                plcSignal.SetValue(result);
-                return OperationResult<object>.Success(plcSignal);
-            }
-            catch (Exception ex)
-            {
-                return OperationResult<object>.Failure($"读取信号 '{plcSignal.SignalName}' 数据失败: {ex.Message}");
-            }
+
         }
 
         public async Task<OperationResult<IEnumerable<IPlcSignal>>> ReadDataAsync(IEnumerable<IPlcSignal> signals)
@@ -92,13 +111,27 @@ namespace Guga.Collector
 
             try
             {
+                var signalList = signals.OfType<S7Signal>().ToList();
+                List<DataItem> dataItems = signalList // 筛选出 S7Signal 类型的信号
+     .Select(s7Signal => new DataItem
+     {
+         DataType = s7Signal.S7DataType,
+         VarType = s7Signal.S7VarType,
+         DB = s7Signal.DB,
+         BitAdr = s7Signal.BitAdr,
+         Count = s7Signal.Count,
+         StartByteAdr = s7Signal.StartByteAdr,
+         Value = null // 或者初始化为适合的数据类型
+     })
+     .ToList();
+
                 var result = new List<IPlcSignal>();
-                foreach (var signal in signals)
+                await _plc.ReadMultipleVarsAsync(dataItems);
+                for (int i = 0; i < dataItems.Count; i++)
                 {
-                    var value = await Task.Run(() => _plc.Read(signal.SignalCode));
-                    signal.SetValue(value);
+                    signalList[i].Value = dataItems[i].Value;
                 }
-                return OperationResult<IEnumerable<IPlcSignal>>.Success(signals);
+                return OperationResult<IEnumerable<IPlcSignal>>.Success(signalList);
             }
             catch (Exception ex)
             {
@@ -112,15 +145,35 @@ namespace Guga.Collector
             {
                 return Result.Failure("设备未连接，无法写入数据。");
             }
+            if (signal is S7Signal s7Signal)
+            {
+                try
+                {
 
-            try
-            {
-                await Task.Run(() => _plc.Write(signal.SignalCode, value));
-                return Result.Success();
+                    List<DataItem> dataItems = new List<DataItem>{
+                        new DataItem
+    {
+        DataType = s7Signal.S7DataType,
+        VarType = s7Signal.S7VarType,
+        DB = s7Signal.DB,
+        BitAdr = s7Signal.BitAdr,
+        Count = s7Signal.Count,
+        StartByteAdr = s7Signal.StartByteAdr,
+        Value =ConvertValue(s7Signal.S7VarType,value) // 或者初始化为适合的数据类型
+    }};
+
+
+                    await _plc.WriteAsync(dataItems.ToArray());
+                    return Result.Success();
+                }
+                catch (Exception ex)
+                {
+                    return Result.Failure($"写入信号 '{signal}' 数据失败: {ex.Message}");
+                }
             }
-            catch (Exception ex)
+            else
             {
-                return Result.Failure($"写入信号 '{signal}' 数据失败: {ex.Message}");
+                return Result.Failure("不支持的信号类型。");
             }
         }
 
@@ -133,10 +186,29 @@ namespace Guga.Collector
 
             try
             {
-                foreach (var kvp in data)
-                {
-                    await Task.Run(() => _plc.Write(kvp.Key.SignalCode, kvp.Value));
-                }
+                // 构建 DataItem 列表
+                List<DataItem> dataItems = data.Keys
+                    .OfType<S7Signal>() // 筛选 S7Signal 类型的信号
+                    .Select(s7Signal =>
+                    {
+                        if (!data.TryGetValue(s7Signal, out var value))
+                        {
+                            throw new ArgumentException($"No value provided for signal: {s7Signal.SignalName}");
+                        }
+
+                        return new DataItem
+                        {
+                            DataType = s7Signal.S7DataType,
+                            VarType = s7Signal.S7VarType,
+                            DB = s7Signal.DB,
+                            BitAdr = s7Signal.BitAdr,
+                            Count = s7Signal.Count,
+                            StartByteAdr = s7Signal.StartByteAdr,
+                            Value = ConvertValue(s7Signal.S7VarType, value)
+                        };
+                    })
+                    .ToList();
+                await _plc.WriteAsync(dataItems.ToArray());
                 return Result.Success();
             }
             catch (Exception ex)
@@ -144,8 +216,24 @@ namespace Guga.Collector
                 return Result.Failure($"写入数据失败: {ex.Message}");
             }
         }
+        private static object ConvertValue(VarType varType, object value)
+        {
+            return varType switch
+            {
+                VarType.Byte => Convert.ToByte(value),
+                VarType.Word => Convert.ToUInt16(value),
+                VarType.DWord => Convert.ToUInt32(value),
+                VarType.Int => Convert.ToInt16(value),
+                VarType.DInt => Convert.ToInt32(value),
+                VarType.Real => Convert.ToSingle(value),
+                VarType.Bit => Convert.ToBoolean(value),
+                VarType.S7WString => Convert.ToString(value),
+                _ => throw new NotSupportedException($"Unsupported VarType: {varType}")
+            };
+        }
 
-     
+
+
     }
 }
-    
+

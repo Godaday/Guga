@@ -36,7 +36,7 @@ namespace Guga.Collector.Services
                 var protocolDevices = group.ToList();
                 switch (protocolType)
                 {
-                    case ProtocolType.s7:
+                    case ProtocolType.S7:
                         foreach (var device in protocolDevices)
                         {
                             var connectionKey = $"{device.Ip}:{device.Port}:{device.ProtocolType_}";
@@ -46,7 +46,7 @@ namespace Guga.Collector.Services
                             }
                         }
                         break;
-                    case ProtocolType.modbus:
+                    case ProtocolType.Modbus:
                         //创建modbus连接
                         break;
                     default:
@@ -75,10 +75,10 @@ namespace Guga.Collector.Services
         /// <param name="device"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        private IDeviceClient CreateClient(Device device)=>
+        public IDeviceClient CreateClient(Device device)=>
             device.ProtocolType_ switch
             {
-                ProtocolType.s7 => new S7Client(device.Ip,(CpuType)device.S7CPUType_!,device.rack,device.slot),
+                ProtocolType.S7 => new S7Client(device.Ip,(CpuType)device.S7CPUType_!,device.rack,device.slot),
                 //ProtocolType.modbus => new ModbusClient(device),
                 _ => throw new ArgumentOutOfRangeException()
             };

@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Guga.Core.Devices;
+
 
 namespace Guga.Collector.Interfaces
 {
-    public class ISignalCollector
+    public interface ISignalCollector
     {
+        public void AddDevice(Device device);
+        public void RemoveDevice(Device device);
+        public void StartTimers();
+        public void StopAllTimers();
     }
 }

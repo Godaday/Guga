@@ -11,7 +11,7 @@ namespace Guga.Core.Enums
     /// </summary>
    public enum ProtocolType
     {
-        s7,
-        modbus,
+        S7,
+        Modbus,
     }
 }
