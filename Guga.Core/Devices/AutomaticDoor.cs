@@ -19,7 +19,7 @@ namespace Guga.Core.Devices
         /// </summary>
         public AutomaticDoor()
         {
-            base.DeviceType_ = DeviceType.AutomaticDoor;
+            base.deviceInfo.DeviceType_ = DeviceType.AutomaticDoor;
         }
 
         public string DoorStatus { get; private set; } = null!; // 门的状态（开/关）
@@ -75,14 +75,14 @@ namespace Guga.Core.Devices
         /// </summary>
         public override void SignalChangeEvent()
         {
-            if (_mediator != null)
-            {
-                _mediator.Publish(new SignalsChangedEvent(this.GetSubscribedSignals(), this));
-            }
-            else
-            {
-                throw new Exception("Device property _mediator is null");
-            }
+            //if (_mediator != null)
+            //{
+            //    _mediator.Publish(new SignalsChangedEvent(this.GetSubscribedSignals(), this));
+            //}
+            //else
+            //{
+            //    throw new Exception("Device property _mediator is null");
+            //}
 
 
         }

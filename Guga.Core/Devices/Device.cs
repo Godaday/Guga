@@ -1,8 +1,10 @@
 ﻿using Guga.Core.Enums;
 using Guga.Core.Interfaces;
+using Guga.Core.Models;
 using Guga.Transformer.Interfaces;
 using MediatR;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Guga.Core.Devices
 {
@@ -11,64 +13,20 @@ namespace Guga.Core.Devices
     /// </summary>
     public abstract class Device: IDevice, IDeviceRules
     {
-        public IMediator _mediator { get; set; } = null!;
+        /// <summary>
+        /// Mediator
+        /// </summary>
+        public IMediator _mediator { get; set; }
       
         /// <summary>
-        /// 设备ID
+        /// 设备基础信息
         /// </summary>
-        public virtual string DeviceId { get; set; } = string.Empty;
-        /// <summary>
-        /// 设备名称
-        /// </summary>
-        public virtual string DeviceName { get; set; } = string.Empty;
-        /// <summary>
-        /// 设备编号
-        /// </summary>
-        public virtual string DeviceCode { get; set; } = string.Empty;
-        /// <summary>
-        /// 设备类型
-        /// </summary>
-        public virtual DeviceType DeviceType_ { get; set; } = DeviceType.unknown;
-
-
-        /// <summary>
-        /// 设备型号 如西门子 S7-300，不需要的可为空
-        /// </summary>
-        public virtual S7CPUType? S7CPUType_ { get; set; } = null;
-        /// <summary>
-        /// 通信协议
-        /// </summary>
-        public virtual ProtocolType ProtocolType_ { get; set; }
-
-        /// <summary>
-        /// 机架号（s7）
-        /// </summary>
-        public virtual short rack { get; set; }
-        /// <summary>
-        /// 槽号(s7)
-        /// </summary>
-        public virtual short slot { get; set; }
-        /// <summary>
-        /// 读取周期，以毫秒为单位，例如：1000ms
-        /// </summary>
-        public virtual int ReadCycle { get; set; } = 2000;
-
-        /// <summary>
-        /// IP地址
-        /// </summary>
-        public virtual string Ip { get; set; } = string.Empty;
-        /// <summary>
-        /// 端口
-        /// </summary>
-        public virtual int? Port { get; set; } = null;
+         public DeviceInfo deviceInfo { get; set; }= new DeviceInfo();
 
         private  HashSet<IPlcSignal> _subscribedSignals = new HashSet<IPlcSignal>();
 
         private readonly object _lockObject = new object();
-        /// <summary>
-        /// Mediator
-        /// </summary>
-       
+    
       
         /// <summary>
         /// 设备订阅信号
@@ -76,16 +34,20 @@ namespace Guga.Core.Devices
         /// <param name="signals"></param>
         public virtual void SubscribeToSignals(IEnumerable<IPlcSignal> signals)
         {
-            lock (_lockObject)
+            if (signals.Any())
             {
-                foreach (var signal in signals)
+                lock (_lockObject)
                 {
-                   
-                    _subscribedSignals.Add(signal);
-                    signal.Device = this;
+                    foreach (var signal in signals)
+                    {
+
+                        _subscribedSignals.Add(signal);
+                        signal.Device = this;
+                    }
                 }
+                UpdateSignals(signals);
             }
-            UpdateSignals(signals);
+            
         }
         /// <summary>
         /// 取消设备订阅的信号
@@ -115,7 +77,7 @@ namespace Guga.Core.Devices
                 {
                     var signal = _subscribedSignals.FirstOrDefault(s => 
                     s.Address == updatedSignal.Address
-                    && s.Device.DeviceId==updatedSignal.Device.DeviceId
+                    && s.Device.deviceInfo.DeviceId==updatedSignal.Device.deviceInfo.DeviceId
                     );
                     if (signal != null)
                     {
@@ -140,7 +102,7 @@ namespace Guga.Core.Devices
 
         public override string ToString()
         {
-            return $"DeviceId:{DeviceId}, DeviceName:{DeviceName}, DeviceCode:{DeviceCode}, DeviceType:{DeviceType_}";
+            return $"DeviceId:{deviceInfo.DeviceId}, DeviceName:{deviceInfo.DeviceName}, DeviceCode:{deviceInfo.DeviceCode}, DeviceType:{deviceInfo.DeviceType_}";
         }
         /// <summary>
         /// 信号改变事件

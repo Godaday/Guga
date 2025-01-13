@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guga.BlazorApp", "Guga.Blaz
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guga.BlazorApp.Client", "Guga.BlazorApp\Guga.BlazorApp.Client\Guga.BlazorApp.Client.csproj", "{687D96BB-D71F-45F8-BBDF-CB0C168C4B40}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guga.Redis", "Guga.Redis\Guga.Redis.csproj", "{13D0DCA7-0A71-4507-9048-FB1C6D40B46A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{687D96BB-D71F-45F8-BBDF-CB0C168C4B40}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{687D96BB-D71F-45F8-BBDF-CB0C168C4B40}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{687D96BB-D71F-45F8-BBDF-CB0C168C4B40}.Release|Any CPU.Build.0 = Release|Any CPU
+		{13D0DCA7-0A71-4507-9048-FB1C6D40B46A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{13D0DCA7-0A71-4507-9048-FB1C6D40B46A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{13D0DCA7-0A71-4507-9048-FB1C6D40B46A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{13D0DCA7-0A71-4507-9048-FB1C6D40B46A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

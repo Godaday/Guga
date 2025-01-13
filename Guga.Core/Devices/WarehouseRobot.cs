@@ -22,7 +22,7 @@ namespace Guga.Core.Devices
         }
         public override string ToString()
         {
-            return $"DeviceId:{DeviceId}, DeviceName:{DeviceName}, DeviceCode:{DeviceCode}, DeviceType:{DeviceType_} status:{status}";
+            return $"DeviceId:{deviceInfo.DeviceId}, DeviceName:{deviceInfo.DeviceName}, DeviceCode:{deviceInfo.DeviceCode}, DeviceType:{deviceInfo.DeviceType_} status:{status}";
         }
 
         public override void SignalChangeEvent()

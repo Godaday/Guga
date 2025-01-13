@@ -28,10 +28,11 @@ namespace Guga.Core.Devices
         /// <returns></returns>
         public T CreateDevice<T>(Action<T>? configure = null) where T : Device, new()
         {
-            var device = new T {
+            var device = new T
+            {
                 _mediator = _mediator
             };
-            
+            //var device = new T();
             configure?.Invoke(device);
             return device;
         }

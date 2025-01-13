@@ -18,8 +18,13 @@ namespace Guga.Collector.Services
         public static PlcConnectionManager _connectionManager;
         private static  SemaphoreSlim Semaphore; // 限制最N个并发操作
 
-
-        public SignalCollector(List<Device> devices, int semaphoreSlim_MaxCount=10)
+        /// <summary>
+        /// 初始化采集器
+        /// </summary>
+        /// <param name="devices"></param>
+        /// <param name="semaphoreSlim_MaxCount"></param>
+        /// <returns></returns>
+        public ISignalCollector Init(List<Device> devices, int semaphoreSlim_MaxCount=10)
         {
 
             Semaphore = new SemaphoreSlim(semaphoreSlim_MaxCount);
@@ -31,7 +36,7 @@ namespace Guga.Collector.Services
             {
                 AddTimer(item);
             }
-
+            return this;
 
 
         }
@@ -87,16 +92,16 @@ namespace Guga.Collector.Services
             lock (_lock_)
             {
                 //没有所属分组则创建个新分组
-                if (!groups_.ContainsKey(device.ReadCycle))
+                if (!groups_.ContainsKey(device.deviceInfo.ReadCycle))
                 {
-                    groups_[device.ReadCycle] = new List<Device>() { device };
+                    groups_[device.deviceInfo.ReadCycle] = new List<Device>() { device };
                 }
                 else
                 {
-                    groups_[device.ReadCycle].Add(device);
+                    groups_[device.deviceInfo.ReadCycle].Add(device);
                 }
 #if DEBUG
-                Console.WriteLine($"采集器添加设备:{device.DeviceName}");
+                Console.WriteLine($"采集器添加设备:{device.deviceInfo.DeviceName}");
 #endif
             }
         }
@@ -105,12 +110,12 @@ namespace Guga.Collector.Services
             lock (_lock_)
             {
                
-                if (groups_.ContainsKey(device.ReadCycle))
+                if (groups_.ContainsKey(device.deviceInfo.ReadCycle))
                 {
-                    groups_[device.ReadCycle].Remove(device); ;
+                    groups_[device.deviceInfo.ReadCycle].Remove(device); ;
                 }
 #if DEBUG
-                Console.WriteLine($"采集器移除设备:{device.DeviceName}");
+                Console.WriteLine($"采集器移除设备:{device.deviceInfo.DeviceName}");
 #endif
             }
 

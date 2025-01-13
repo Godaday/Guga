@@ -1,5 +1,7 @@
 ﻿using Guga.Collector;
+using Guga.Core.Enums;
 using Guga.Core.Interfaces;
+using Guga.Core.Models;
 using Guga.Core.PlcSignals;
 using S7.Net;
 using System;
@@ -36,11 +38,13 @@ public class ContinuousWriter
                 while (!cancellationToken.IsCancellationRequested)
                 {
                     //信号默认值
-                    Dictionary<IPlcSignal, object> signals = plcSignals.ToDictionary(
-                        signal => signal,
-                        signal => GetDefaultValueForSignal(signal)
-                    );
-                    // Perform the write operation
+                    Dictionary<IPlcSignal, object> signals = new Dictionary<IPlcSignal, object>();
+                   
+                    foreach (var s in plcSignals)
+                    {
+                        // Perform the write operation
+                        signals.Add(s, GetDefaultValueForSignal(s));
+                    }
                     var result = await _s7Client.WriteDataAsync(signals);
                     if (!result.IsSuccess)
                     {
@@ -53,6 +57,8 @@ public class ContinuousWriter
 
                     // Delay before the next write (adjust interval as needed)
                     await Task.Delay(8000, cancellationToken);
+                   
+                   
                 }
             }
             catch (OperationCanceledException)
@@ -85,7 +91,7 @@ public class ContinuousWriter
             return s7Signal.S7VarType switch
             {
                 VarType.Byte => (byte)RandomGenerator.Next(byte.MinValue, byte.MaxValue + 1), // 0~255
-                VarType.Word => (ushort)RandomGenerator.Next(ushort.MinValue, ushort.MaxValue + 1), // 0~65535
+                VarType.Word => (ushort)RandomGenerator.Next(int.MinValue, ushort.MaxValue + 1), // 0~65535
                 VarType.DWord => (uint)RandomGenerator.NextInt64(0, uint.MaxValue), // 0~4294967295
                 VarType.Int => (short)RandomGenerator.Next(short.MinValue, short.MaxValue + 1), // -32768~32767
                 VarType.DInt => RandomGenerator.Next(int.MinValue, int.MaxValue), // -2147483648~2147483647
@@ -97,10 +103,69 @@ public class ContinuousWriter
         }
         throw new InvalidOperationException("Signal is not an S7Signal.");
     }
-     string GenerateRandomString(int length)
+    string GenerateRandomString(int length)
     {
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         return new string(Enumerable.Repeat(chars, length)
             .Select(s => s[RandomGenerator.Next(s.Length)]).ToArray());
+    }
+
+   public static IEnumerable<IPlcSignal> CreateS7TestSignals()
+    {
+        var signals = new List<IPlcSignal>();
+
+        // 定义所有可能的 VarType 和 DataType 的组合
+        var varTypes = new[]
+        {
+            VarType.Byte,
+            VarType.Word,
+            VarType.DWord,
+            VarType.Int,
+            VarType.DInt,
+            VarType.Real,
+             VarType.Bit,
+            VarType.S7WString
+        };
+
+        var dataTypes = new[]
+        {
+            DataType.DataBlock,
+            //DataType.Input,
+            //DataType.Output,
+            //DataType.Memory
+        };
+
+        // 遍历所有组合，生成测试信号
+        int startByte = 0;
+        foreach (var dataType in dataTypes)
+        {
+            foreach (var varType in varTypes)
+            {
+                // 配置参数
+                var config = new S7Config
+                {
+                    DataType = dataType,
+                    VarType = varType,
+                    DB = 1, // 默认 DB1
+                    StartByteAdr = startByte,
+                    Count = varType == VarType.S7WString ? 10 : 1,
+                    BitAdr = 0
+
+                };
+
+                // 使用工厂创建信号
+                var signal = PlcSignalFactory.CreateSignal(
+                    ProtocolType.S7,
+                    $"{dataType}_{varType}_Signal",
+                    $"DB{config.DB}.{config.StartByteAdr}",
+                    config
+                );
+
+                signals.Add(signal);
+                startByte += config.Count; // 更新地址
+            }
+        }
+
+        return signals;
     }
 }

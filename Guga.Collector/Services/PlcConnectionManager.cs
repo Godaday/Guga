@@ -29,7 +29,7 @@ namespace Guga.Collector.Services
         public PlcConnectionManager(List<Device> devices)
         {
             // 按照协议类型分组
-            var protocolTypeGroup =devices.GroupBy(x => x.ProtocolType_);
+            var protocolTypeGroup =devices.GroupBy(x => x.deviceInfo.ProtocolType_);
             foreach(var group in protocolTypeGroup)
             {
                 var protocolType = group.Key;
@@ -39,7 +39,7 @@ namespace Guga.Collector.Services
                     case ProtocolType.S7:
                         foreach (var device in protocolDevices)
                         {
-                            var connectionKey = $"{device.Ip}:{device.Port}:{device.ProtocolType_}";
+                            var connectionKey = $"{device.deviceInfo.Ip}:{device.deviceInfo.Port}:{device.deviceInfo.ProtocolType_}";
                             if (!_connectionPool.ContainsKey(connectionKey))
                             {
                                 _connectionPool[connectionKey] = CreateClient(device);
@@ -63,7 +63,7 @@ namespace Guga.Collector.Services
         /// <returns></returns>
         public IDeviceClient GetConnection(Device device)
         {
-            var connectionKey = $"{device.Ip}:{device.Port}:{device.ProtocolType_}";
+            var connectionKey = $"{device.deviceInfo.Ip}:{device.deviceInfo.Port}:{device.deviceInfo.ProtocolType_}";
 
 
             return _connectionPool.ContainsKey(connectionKey) ? _connectionPool[connectionKey] : null!;
@@ -76,9 +76,9 @@ namespace Guga.Collector.Services
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public IDeviceClient CreateClient(Device device)=>
-            device.ProtocolType_ switch
+            device.deviceInfo.ProtocolType_ switch
             {
-                ProtocolType.S7 => new S7Client(device.Ip,(CpuType)device.S7CPUType_!,device.rack,device.slot),
+                ProtocolType.S7 => new S7Client(device.deviceInfo.Ip, (CpuType)device.deviceInfo.S7CPUType_!,device.deviceInfo.rack, device.deviceInfo.slot),
                 //ProtocolType.modbus => new ModbusClient(device),
                 _ => throw new ArgumentOutOfRangeException()
             };

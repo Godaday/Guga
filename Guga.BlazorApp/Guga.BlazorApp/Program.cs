@@ -1,11 +1,29 @@
+using ColinChang.RedisHelper;
+using Guga.BlazorApp;
 using Guga.BlazorApp.Client.Pages;
 using Guga.BlazorApp.Components;
+using Guga.Collector;
+using Guga.Core;
+using Guga.Redis;
+using Guga.Redis.ConfigModels;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using MudBlazor;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 //注册MudBlazor服务
 builder.Services.AddMudServices();
+
+//注册信号解析器相关服务
+builder.Services.Configure<RedisKeyOptions>(builder.Configuration.GetSection(nameof(RedisKeyOptions)));//redis key配置
+builder.Services.Configure<RedisHelperOptions>(builder.Configuration.GetSection(nameof(RedisHelperOptions)));//redis 连接配置
+builder.Services.AddGugaRedisServices(builder.Configuration.GetSection(nameof(RedisHelperOptions)));//redis连接服务
+builder.Services.AddGugaCoreServices();//核心服务
+builder.Services.AddGugaCollectorServices();//采集器
+// 注册设备初始化服务
+builder.Services.AddHostedService<DevicesInitHostedService>();
+
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

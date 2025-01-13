@@ -23,5 +23,7 @@ namespace Guga.Core.Enums
         AGV,
         [Description("RGV")]
         RGV,
+        [Description("通用设备")]
+        Universal
     }
 }

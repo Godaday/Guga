@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Guga.Collector\Guga.Collector.csproj" />
+    <ProjectReference Include="..\..\Guga.ConsoleApp\Guga.ConsoleApp.csproj" />
+    <ProjectReference Include="..\..\Guga.Core\Guga.Core.csproj" />
+    <ProjectReference Include="..\..\Guga.Redis\Guga.Redis.csproj" />
     <ProjectReference Include="..\Guga.BlazorApp.Client\Guga.BlazorApp.Client.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.11" />
   </ItemGroup>

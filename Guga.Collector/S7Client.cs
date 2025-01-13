@@ -4,6 +4,10 @@ using Guga.Core.Interfaces;
 using Guga.Core.PlcSignals;
 using S7.Net;
 using S7.Net.Types;
+using System.ComponentModel;
+using System.Drawing;
+using System.Numerics;
+using System.Runtime.Intrinsics.X86;
 
 namespace Guga.Collector
 {
@@ -218,6 +222,21 @@ namespace Guga.Collector
         }
         private static object ConvertValue(VarType varType, object value)
         {
+//         Please refer to the source code of the class to see its methods.With them you can insert/extract:
+//         BITS
+//         WORD(unsigned 16 bit integer)
+//         INT(signed 16 bit integer)
+//         DWORD(unsigned 32 bit integer)
+//         DINT(signed 32 bit integer)
+//         REAL(32 bit floating point number)
+//         S7 Strings
+//         S7 Array of char
+//         The class is able also to read/write a S7 DATE_AND_TIME variable mapping it into the native language format and vice-versa:
+//         S7 DT<-> .NET DateTime
+//         S7 DT <-> Pascal TDateTime
+//         S7 DT <-> C++ tm struct
+
+
             return varType switch
             {
                 VarType.Byte => Convert.ToByte(value),
