@@ -1,13 +1,22 @@
 ﻿
 <MudPaper Elevation="0" Class="py-3">
-    <MudNavMenu Bordered="true">
-        <MudNavLink Href="/dashboard">Dashboard</MudNavLink>
+    <MudNavMenu >
+        @* <MudText Typo="Typo.h6" Class="px-4">-</MudText>
+        <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Secondary Text</MudText> *@
+        <MudDivider Class="my-2" />
+      @*   <MudNavLink Href="/dashboard">Dashboard</MudNavLink>
         <MudNavLink Match="NavLinkMatch.Prefix" Href="/components/navmenu">Servers</MudNavLink>
         <MudNavLink Href="/counter" Match="NavLinkMatch.All">counter</MudNavLink>
         <MudNavGroup Title="Settings" Expanded="true">
             <MudNavLink Href="/users">Users</MudNavLink>
             <MudNavLink Href="/security">Security</MudNavLink>
-        </MudNavGroup>
-        <MudNavLink Href="/weather" Match="NavLinkMatch.All">weather</MudNavLink>
+        </MudNavGroup> *@
+      @*    <MudNavLink Href="/dashboard" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink> *@
+
+        <MudNavLink Href="/signals" Icon="@Icons.Material.Filled.Dataset" Match="NavLinkMatch.All">信号监测</MudNavLink>
+       @*  <MudNavGroup Title="设备信号" Icon="@Icons.Material.Filled.Devices" Expanded="true">
+           
+             </MudNavGroup> *@
+        
     </MudNavMenu>
 </MudPaper>

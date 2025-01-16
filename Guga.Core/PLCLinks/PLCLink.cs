@@ -6,12 +6,12 @@ using MediatR;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace Guga.Core.Devices
+namespace Guga.Core.PLCLinks
 {
     /// <summary>
-    /// 设备基础
+    /// 链路基础
     /// </summary>
-    public abstract class Device: IDevice, IDeviceRules
+    public abstract class PLCLink: IPLCLink, IPLCLinkRules
     {
         /// <summary>
         /// Mediator
@@ -19,9 +19,9 @@ namespace Guga.Core.Devices
         public IMediator _mediator { get; set; }
       
         /// <summary>
-        /// 设备基础信息
+        /// 链路基础信息
         /// </summary>
-         public DeviceInfo deviceInfo { get; set; }= new DeviceInfo();
+         public PLCLinkInfo plclinkInfo { get; set; }= new PLCLinkInfo();
 
         private  HashSet<IPlcSignal> _subscribedSignals = new HashSet<IPlcSignal>();
 
@@ -29,7 +29,7 @@ namespace Guga.Core.Devices
     
       
         /// <summary>
-        /// 设备订阅信号
+        /// 链路订阅信号
         /// </summary>
         /// <param name="signals"></param>
         public virtual void SubscribeToSignals(IEnumerable<IPlcSignal> signals)
@@ -42,7 +42,7 @@ namespace Guga.Core.Devices
                     {
 
                         _subscribedSignals.Add(signal);
-                        signal.Device = this;
+                        signal.PLCLink = this;
                     }
                 }
                 UpdateSignals(signals);
@@ -50,7 +50,7 @@ namespace Guga.Core.Devices
             
         }
         /// <summary>
-        /// 取消设备订阅的信号
+        /// 取消链路订阅的信号
         /// </summary>
         /// <param name="signals"></param>
         public virtual void UnsubscribeFromSignals(IEnumerable<IPlcSignal> signals)
@@ -77,7 +77,7 @@ namespace Guga.Core.Devices
                 {
                     var signal = _subscribedSignals.FirstOrDefault(s => 
                     s.Address == updatedSignal.Address
-                    && s.Device.deviceInfo.DeviceId==updatedSignal.Device.deviceInfo.DeviceId
+                    && s.PLCLink.plclinkInfo.PLCLinkId==updatedSignal.PLCLink.plclinkInfo.PLCLinkId
                     );
                     if (signal != null)
                     {
@@ -87,11 +87,11 @@ namespace Guga.Core.Devices
                 }
                
             }
-            //设备信号转换业务状态
+            //链路信号转换业务状态
             SignalChangeEvent();
         }
         /// <summary>
-        /// 获取设备的订阅信号
+        /// 获取链路的订阅信号
         /// </summary>
         /// <returns></returns>
         public virtual IEnumerable<IPlcSignal> GetSubscribedSignals()
@@ -102,7 +102,7 @@ namespace Guga.Core.Devices
 
         public override string ToString()
         {
-            return $"DeviceId:{deviceInfo.DeviceId}, DeviceName:{deviceInfo.DeviceName}, DeviceCode:{deviceInfo.DeviceCode}, DeviceType:{deviceInfo.DeviceType_}";
+            return $"PLCLinkId:{plclinkInfo.PLCLinkId}, PLCLinkName:{plclinkInfo.PLCLinkName}, PLCLinkCode:{plclinkInfo.PLCLinkCode}, PLCLinkType:{plclinkInfo.PLCLinkType_}";
         }
         /// <summary>
         /// 信号改变事件

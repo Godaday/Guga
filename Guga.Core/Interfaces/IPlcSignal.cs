@@ -10,11 +10,14 @@ namespace Guga.Core.Interfaces
     {
       
  
-        IDevice Device { get; set; }
-      
+        IPLCLink PLCLink { get; set; }
 
 
 
+        /// <summary>
+        /// 读取周期，以毫秒为单位，例如：1000ms
+        /// </summary>
+         int ReadCycle { get; set; }
         /// <summary>
         /// 信号名称。
         /// </summary>
@@ -27,8 +30,11 @@ namespace Guga.Core.Interfaces
 
          object GetValue();
 
-        void SetValue(object value);
-
+        void SetValue(object value,bool updateCollectTime =true);
+        /// <summary>
+        /// 采集时间
+        /// </summary>
+        DateTime CollectTime { get; set; }
         /// <summary>
         /// 配置信号的属性。
         /// </summary>

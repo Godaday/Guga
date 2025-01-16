@@ -6,16 +6,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Guga.Core.Devices
+namespace Guga.Core.PLCLinks
 {
     /// <summary>
-    /// 通用设备类
+    /// 通用链路类
     /// </summary>
-    public class UniversalDevice : Device
+    public class UniversalPLCLink : PLCLink
     {
-        public UniversalDevice()
+        public UniversalPLCLink()
         {
-            base.deviceInfo.DeviceType_ = DeviceType.Universal; //通用设备
+            base.plclinkInfo.PLCLinkType_ = PLCLinkType.Universal; //通用链路
         }
         /// <summary>
         /// 对象状态转信号规则

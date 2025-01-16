@@ -1,4 +1,4 @@
-﻿using Guga.Core.Devices;
+﻿using Guga.Core.PLCLinks;
 using Guga.Core.Interfaces;
 using MediatR;
 using System;
@@ -15,11 +15,11 @@ namespace Guga.Core.MediatR
     public class SignalsChangedEvent: INotification
     {
        public IEnumerable<IPlcSignal> PlcSignals_ { get; set; }
-        public Device Device_ { get; set; }
-        public SignalsChangedEvent(IEnumerable<IPlcSignal> plcSignals, Device device)
+        public PLCLink PLCLink_ { get; set; }
+        public SignalsChangedEvent(IEnumerable<IPlcSignal> plcSignals, PLCLink plclink)
         {
             PlcSignals_ = plcSignals;
-            Device_ = device;
+            PLCLink_ = plclink;
         }
     }
 }

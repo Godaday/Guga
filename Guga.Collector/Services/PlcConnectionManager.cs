@@ -1,6 +1,6 @@
 ﻿using Guga.Collector.Interfaces;
 using Guga.Collector.Models;
-using Guga.Core.Devices;
+using Guga.Core.PLCLinks;
 using Guga.Core.Enums;
 using Guga.Core.Interfaces;
 using S7.Net;
@@ -15,34 +15,44 @@ namespace Guga.Collector.Services
     /// <summary>
     /// PLC连接管理
     /// </summary>
-    public class PlcConnectionManager
+    public class PlcConnectionManager : IPlcConnectionManager
     {
         /// <summary>
         /// PLC连接池
         /// </summary>
-        private readonly Dictionary<string, IDeviceClient> _connectionPool = new();
-        
+        private readonly Dictionary<string, IPLCLinkClient> _connectionPool = new();
+
+        private int _ReconnectInterval = 3000;
+        private int _ReconnectCount = 3;
+        public PlcConnectionManager(int reconnectInterval,int reconnectCount)
+        {
+            _ReconnectInterval = reconnectInterval;
+            _ReconnectCount = reconnectCount;
+        }
+
         /// <summary>
         /// 初始化连接管理器
         /// </summary>
-        /// <param name="devices"></param>
-        public PlcConnectionManager(List<Device> devices)
+        /// <param name="plclinks"></param>
+        public void Init(List<PLCLink> plclinks)
         {
-            // 按照协议类型分组
-            var protocolTypeGroup =devices.GroupBy(x => x.deviceInfo.ProtocolType_);
-            foreach(var group in protocolTypeGroup)
+
+            _connectionPool.Clear();
+               // 按照协议类型分组
+               var protocolTypeGroup = plclinks.GroupBy(x => x.plclinkInfo.ProtocolType_);
+            foreach (var group in protocolTypeGroup)
             {
                 var protocolType = group.Key;
-                var protocolDevices = group.ToList();
+                var protocolPLCLinks = group.ToList();
                 switch (protocolType)
                 {
                     case ProtocolType.S7:
-                        foreach (var device in protocolDevices)
+                        foreach (var plclink in protocolPLCLinks)
                         {
-                            var connectionKey = $"{device.deviceInfo.Ip}:{device.deviceInfo.Port}:{device.deviceInfo.ProtocolType_}";
+                            var connectionKey = plclink.plclinkInfo.GetKey();
                             if (!_connectionPool.ContainsKey(connectionKey))
                             {
-                                _connectionPool[connectionKey] = CreateClient(device);
+                                _connectionPool[connectionKey] = CreateClient(plclink);
                             }
                         }
                         break;
@@ -53,7 +63,7 @@ namespace Guga.Collector.Services
                         throw new ArgumentOutOfRangeException();
                 }
             }
-            
+
         }
         /// <summary>
         /// 根据IP和端口获取连接
@@ -61,9 +71,9 @@ namespace Guga.Collector.Services
         /// <param name="ip"></param>
         /// <param name="port"></param>
         /// <returns></returns>
-        public IDeviceClient GetConnection(Device device)
+        public IPLCLinkClient GetConnection(PLCLink link)
         {
-            var connectionKey = $"{device.deviceInfo.Ip}:{device.deviceInfo.Port}:{device.deviceInfo.ProtocolType_}";
+            var connectionKey = link.plclinkInfo.GetKey();
 
 
             return _connectionPool.ContainsKey(connectionKey) ? _connectionPool[connectionKey] : null!;
@@ -72,18 +82,33 @@ namespace Guga.Collector.Services
         /// <summary>
         /// 创建PLC连接客户端
         /// </summary>
-        /// <param name="device"></param>
+        /// <param name="plclink"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public IDeviceClient CreateClient(Device device)=>
-            device.deviceInfo.ProtocolType_ switch
+        public IPLCLinkClient CreateClient(PLCLink link) =>
+            link.plclinkInfo.ProtocolType_ switch
             {
-                ProtocolType.S7 => new S7Client(device.deviceInfo.Ip, (CpuType)device.deviceInfo.S7CPUType_!,device.deviceInfo.rack, device.deviceInfo.slot),
-                //ProtocolType.modbus => new ModbusClient(device),
+                ProtocolType.S7 => new S7Client(link.plclinkInfo.Ip, (CpuType)link.plclinkInfo.S7CPUType_!, link.plclinkInfo.rack, link.plclinkInfo.slot),
+                //ProtocolType.modbus => new ModbusClient(plclink),
                 _ => throw new ArgumentOutOfRangeException()
             };
+        /// <summary>
+        /// 释放资源 断开连接池中的所有连接
+        /// </summary>
+        public void Dispose()
+        {
+            foreach (var connection in _connectionPool)
+            {
+                connection.Value.DisconnectAsync();
+            }
+        }
 
-
-
+      public async  Task ConnectionAllAsync()
+        {
+            foreach (var connection in _connectionPool)
+            {
+                await connection.Value.ConnectAsync(_ReconnectInterval, _ReconnectCount);
+            }
+        }
     }
 }

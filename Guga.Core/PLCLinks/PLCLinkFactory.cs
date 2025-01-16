@@ -6,35 +6,35 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Guga.Core.Devices
+namespace Guga.Core.PLCLinks
 {
     /// <summary>
-    /// 创建设备对象工厂实现
-    /// IMediator 对象统一注入，方便设备对象内部调用 MediatR 发送消息
+    /// 创建链路对象工厂实现
+    /// IMediator 对象统一注入，方便链路对象内部调用 MediatR 发送消息
     /// </summary>
-    public class DeviceFactory : IDeviceFactory
+    public class PLCLinkFactory : IPLCLinkFactory
     {
         private readonly IMediator _mediator;
 
-        public DeviceFactory(IMediator mediator)
+        public PLCLinkFactory(IMediator mediator)
         {
             _mediator = mediator;
         }
         /// <summary>
-        /// 创建具体的设备对象
+        /// 创建具体的链路对象
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="configure"></param>
         /// <returns></returns>
-        public T CreateDevice<T>(Action<T>? configure = null) where T : Device, new()
+        public T CreatePLCLink<T>(Action<T>? configure = null) where T : PLCLink, new()
         {
-            var device = new T
+            var plclink = new T
             {
                 _mediator = _mediator
             };
-            //var device = new T();
-            configure?.Invoke(device);
-            return device;
+            //var plclink = new T();
+            configure?.Invoke(plclink);
+            return plclink;
         }
     }
 }

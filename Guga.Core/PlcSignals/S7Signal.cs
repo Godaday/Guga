@@ -23,8 +23,10 @@ namespace Guga.Core.PlcSignals
         public int StartByteAdr { get; set; }
         public byte BitAdr { get; set; }
         public int Count { get; set; }
-        public IDevice Device { get ; set; }
-       
+        public IPLCLink PLCLink { get ; set; }
+
+        public int ReadCycle { get; set; } = 200;
+        public DateTime CollectTime { get; set; }
 
         public S7Signal(string signalName, string address,object value=null)
         {
@@ -55,9 +57,14 @@ namespace Guga.Core.PlcSignals
            return Value;
         }
 
-        public void SetValue(object value)
+        public void SetValue(object value , bool updateCollectTime = true)
         {
-            value = Value;
+            Value = value;
+            if (updateCollectTime)
+            {
+                CollectTime = DateTime.Now;
+            }
+            
         }
     }
 

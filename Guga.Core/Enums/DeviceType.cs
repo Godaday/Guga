@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 namespace Guga.Core.Enums
 {
     /// <summary>
-    /// 设备类型
+    /// 链路类型
     /// </summary>
-   public enum DeviceType
+   public enum PLCLinkType
     {
 
         [Description("未知")]
@@ -23,7 +23,7 @@ namespace Guga.Core.Enums
         AGV,
         [Description("RGV")]
         RGV,
-        [Description("通用设备")]
+        [Description("通用链路")]
         Universal
     }
 }

@@ -1,9 +1,11 @@
 ﻿using Guga.Collector;
+using Guga.Collector.Guga.Collector;
 using Guga.Core.Enums;
 using Guga.Core.Interfaces;
 using Guga.Core.Models;
 using Guga.Core.PlcSignals;
 using S7.Net;
+using S7.Net.Types;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -55,8 +57,8 @@ public class ContinuousWriter
                         Console.WriteLine("Write successful.");
                     }
 
-                    // Delay before the next write (adjust interval as needed)
-                    await Task.Delay(8000, cancellationToken);
+                   
+                    
                    
                    
                 }
@@ -105,12 +107,14 @@ public class ContinuousWriter
     }
     string GenerateRandomString(int length)
     {
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        return new string(Enumerable.Repeat(chars, length)
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789一二三四五六七八九十";
+        var randomString = new string(Enumerable.Repeat(chars, length)
             .Select(s => s[RandomGenerator.Next(s.Length)]).ToArray());
+
+        return randomString;
     }
 
-   public static IEnumerable<IPlcSignal> CreateS7TestSignals()
+    public static IEnumerable<IPlcSignal> CreateS7TestSignals()
     {
         var signals = new List<IPlcSignal>();
 
@@ -152,15 +156,27 @@ public class ContinuousWriter
                     BitAdr = 0
 
                 };
+                var dataItem = new DataItem
+                {
+                    DataType = dataType,
+                    VarType = varType,
+                    DB = 1, // 默认 DB1
+                    StartByteAdr = startByte,
+                    Count = varType == VarType.S7WString ? 10 : 1,
+                    BitAdr = 0
+
+                };
+                var addres =dataItem.ToAddressString();
+
 
                 // 使用工厂创建信号
                 var signal = PlcSignalFactory.CreateSignal(
                     ProtocolType.S7,
                     $"{dataType}_{varType}_Signal",
-                    $"DB{config.DB}.{config.StartByteAdr}",
+                    $"{ProtocolType.S7}.{addres}",
                     config
                 );
-
+                signal.ReadCycle = new Random().Next(200, 1000);
                 signals.Add(signal);
                 startByte += config.Count; // 更新地址
             }

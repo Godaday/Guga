@@ -8,12 +8,12 @@ using Guga.Core.Enums;
 using Guga.Transformer.Interfaces;
 using MediatR;
 
-namespace Guga.Core.Devices
+namespace Guga.Core.PLCLinks
 {
     /// <summary>
     /// 电梯
     /// </summary>
-    public class Elevator : Device
+    public class Elevator : PLCLink
     {
         public int CurrentFloor { get; private set; } // 当前楼层
         public bool IsMoving { get; private set; } // 电梯是否在运动

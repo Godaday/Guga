@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Guga.Core.Enums
 {
     /// <summary>
-    /// 设备协议类型
+    /// 链路协议类型
     /// </summary>
    public enum ProtocolType
     {

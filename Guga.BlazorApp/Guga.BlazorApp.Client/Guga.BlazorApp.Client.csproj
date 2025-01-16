@@ -14,4 +14,8 @@
     <PackageReference Include="MudBlazor.ThemeManager" Version="2.1.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\Guga.Collector\Guga.Collector.csproj" />
+  </ItemGroup>
+
 </Project>

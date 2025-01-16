@@ -1,6 +1,6 @@
 ﻿using ColinChang.RedisHelper;
 using Guga.Collector.Interfaces;
-using Guga.Core.Devices;
+using Guga.Core.PLCLinks;
 using Guga.Core.Enums;
 using Guga.Core.Interfaces;
 using Guga.Core.Models;
@@ -11,52 +11,56 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using Guga.Collector;
+using S7.Net;
+using Guga.Collector.Services;
 
 namespace Guga.BlazorApp
 {
     /// <summary>
-    /// 设备初始化服务。
+    /// 链路初始化服务。
     /// </summary>
-    public class DevicesInitHostedService : IHostedService
+    public class PLCLinksInitHostedService : IHostedService
     {
-        private readonly IDeviceManager _deviceManager;
+        private readonly IPLCLinkManager _plclinkManager;
         private readonly IRedisHelper _redisHelper;
         private readonly ISignalCollector _signalCollector;
         private readonly IServiceProvider _serviceProvider;
         private readonly RedisKeyOptions _redisKeyOptions;
-        public DevicesInitHostedService(IDeviceManager deviceManager, IRedisHelper redisHelper,
-            ISignalCollector signalCollector, IServiceProvider serviceProvider, IOptions<RedisKeyOptions> redisKeyOptions
+        private readonly IPLCLinkFactory _pLCLinkFactory;
+        public PLCLinksInitHostedService(IPLCLinkManager plclinkManager, IRedisHelper redisHelper,
+            ISignalCollector signalCollector, IServiceProvider serviceProvider, IOptions<RedisKeyOptions> redisKeyOptions,
+            IPLCLinkFactory pLCLinkFactory
             )
         {
-            _deviceManager = deviceManager;
+            _plclinkManager = plclinkManager;
             _redisHelper = redisHelper;
             _signalCollector = signalCollector;
             _serviceProvider = serviceProvider;
             _redisKeyOptions = redisKeyOptions.Value;
+            _pLCLinkFactory = pLCLinkFactory;
 
         }
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             var configuration = _serviceProvider.GetRequiredService<IConfiguration>();
 
-#if DEBUG
-            var deviceFactory = _serviceProvider.GetRequiredService<IDeviceFactory>();
-            //创建设备
-            DeviceInfo deviceInfo = new  DeviceInfo{
-                DeviceId = "DV-2",
-                DeviceName = "西门子设备",
-                DeviceCode = "WR001",
-                DeviceType_ = DeviceType.Universal,
+
+            var plclinkFactory = _serviceProvider.GetRequiredService<IPLCLinkFactory>();
+            //创建链路
+            PLCLinkInfo plclinkInfo = new  PLCLinkInfo{
+                PLCLinkId = "DV-2",
+                PLCLinkName = "西门子链路",
+                PLCLinkCode = "WR001",
+                PLCLinkType_ = PLCLinkType.Universal,
                 Ip = "127.0.0.1",
                 ProtocolType_ = ProtocolType.S7,
                 S7CPUType_ = S7CPUType.S71200,
                 rack = 0,
                 slot = 1,
-
-
             };
-            await _redisHelper.StringSetAsync(_redisKeyOptions._DevicesIDs, new List<string>() { "DV-2" });
-            await _redisHelper.StringSetAsync(_redisKeyOptions._DeviceInfo(deviceInfo.DeviceId), deviceInfo);
+            await _redisHelper.StringSetAsync(_redisKeyOptions._PLCLinksIDs, new List<string>() { "DV-2" });
+            await _redisHelper.StringSetAsync(_redisKeyOptions._PLCLinkInfo(plclinkInfo.PLCLinkId), plclinkInfo);
             //创建信号
             var s7Signals = ContinuousWriter.CreateS7TestSignals();
             
@@ -70,12 +74,12 @@ namespace Guga.BlazorApp
                 entries.TryAdd(signal.SignalName, JsonConvert.SerializeObject(signal));
 
             } 
-              await _redisHelper.HashSetAsync(_redisKeyOptions._DevicesSignals(deviceInfo.DeviceId), entries);
+              await _redisHelper.HashSetAsync(_redisKeyOptions._PLCLinksSignals(plclinkInfo.PLCLinkId), entries);
 
-#endif
+
 
             //Check 默认配置是否存在
-            #region 从 Redis 加载西门子设备不同型号机架号、插槽数据
+            #region 从 Redis 加载西门子链路不同型号机架号、插槽数据
             var s7RackSlotredisKey = _redisKeyOptions._S7RackSlot;
             var redis_S7RackSlot = await _redisHelper.StringGetAsync<List<S7RackSlotConfig>>(s7RackSlotredisKey);
             if (redis_S7RackSlot == null || redis_S7RackSlot.Count == 0)
@@ -87,86 +91,119 @@ namespace Guga.BlazorApp
                 // await _redisHelper.HashSetAsync(s7RackSlotredisKey, appsetting_S7RackSlot);
             }
             #endregion
-            #region 加载设备及信号
-            #region 加载设备信息
-            var devicesIds = await _redisHelper.StringGetAsync<List<string>>(_redisKeyOptions._DevicesIDs);
-            if (devicesIds.Any())
+            #region 加载链路及信号启动采集
+         
+           await _signalCollector.Init(getAllPLcLinks);
+            await _signalCollector.Start();
+            #endregion
+            #region 模拟写入
+            var s7Client = new S7Client("127.0.0.1", CpuType.S71200, 0, 0);
+            s7Client.ConnectAsync().Wait();
+           
+
+            var continuousWriter = new ContinuousWriter(s7Client);
+            //continuousWriter.StartWriting(s7Signals);
+
+
+            Task.Run(async ()=>
             {
-                var task = devicesIds.Select(async deviceId =>
+                while (true)
                 {
-                    // 这里调用你的 HashGetAsync 方法获取设备信息
-                    var deviceData = await _redisHelper.StringGetAsync<DeviceInfo>($"{_redisKeyOptions._DeviceInfo(deviceId)}");
-                    return deviceData;
-                });
-                var deviceInfos = await Task.WhenAll(task);
-                if (deviceInfos.Any())
-                {
-                    List<Device> devices = new List<Device>();
-                    foreach (var d in deviceInfos)
+                    foreach (var d in _plclinkManager.PLCLinks)
                     {
-                        Device device = deviceFactory.CreateDevice<UniversalDevice>(door =>
-                        {
-                            door.deviceInfo = d;
-                        });
-                        devices.Add(device);
+                        var kk = d.GetSubscribedSignals();
+                        
+                        continuousWriter.StartWriting(kk);
                     }
-                    _deviceManager.Devices.AddRange(devices);
+                    await Task.Delay(500);
+                }
+               
+            });
+            #endregion
+
+        }
+        public async Task< List<PLCLink>> getAllPLcLinks()
+        {
+            List<PLCLink> result = new List<PLCLink>();
+            #region 加载链路信息
+           var plclinksIds = await _redisHelper.StringGetAsync<List<string>>(_redisKeyOptions._PLCLinksIDs);
+            if (plclinksIds.Any())
+            {
+                var task = plclinksIds.Select(async plclinkId =>
+                {
+                    // 这里调用你的 HashGetAsync 方法获取链路信息
+                    var plclinkData = await _redisHelper.StringGetAsync<PLCLinkInfo>($"{_redisKeyOptions._PLCLinkInfo(plclinkId)}");
+                    return plclinkData;
+                });
+                var plclinkInfos = await Task.WhenAll(task);
+                if (plclinkInfos.Any())
+                {
+                    List<PLCLink> plclinks = new List<PLCLink>();
+                    foreach (var d in plclinkInfos)
+                    {
+                        PLCLink plclink = _pLCLinkFactory.CreatePLCLink<UniversalPLCLink>(door =>
+                        {
+                            door.plclinkInfo = d;
+                        });
+                        plclinks.Add(plclink);
+                    }
+                    result.AddRange(plclinks);
                 }
 
             }
             #endregion
-            #region  加载设备信号信息
-            if (_deviceManager.Devices.Any())
+            #region  加载链路信号信息
+            if (result.Any())
             {
-                _deviceManager.Devices.ForEach(async device =>
+                foreach (var plclink in result)
                 {
-                    #region 获取设备信号
-                    var  d_signals_dic = await _redisHelper.HashGetAsync(_redisKeyOptions._DevicesSignals(device.deviceInfo.DeviceId));
+                    #region 获取链路信号
+                    var d_signals_dic = await _redisHelper.HashGetAsync(_redisKeyOptions._PLCLinksSignals(plclink.plclinkInfo.PLCLinkId));
 
                     if (d_signals_dic.Any())
                     {
                         List<IPlcSignal> plcSignals = new List<IPlcSignal>();
                         foreach (var signal in d_signals_dic.Values)
                         {
-                            if (string.IsNullOrEmpty(signal))
+                            if (!string.IsNullOrEmpty(signal))
                             {
                                 IPlcSignal plcSignal = null;
-                                if (device.deviceInfo.ProtocolType_ == Core.Enums.ProtocolType.S7)
+                                if (plclink.plclinkInfo.ProtocolType_ == Core.Enums.ProtocolType.S7)
                                 {
                                     plcSignal = JsonConvert.DeserializeObject<S7Signal>(signal);
                                 }
-                                else if (device.deviceInfo.ProtocolType_ == Core.Enums.ProtocolType.Modbus)
+                                else if (plclink.plclinkInfo.ProtocolType_ == Core.Enums.ProtocolType.Modbus)
                                 {
                                     plcSignal = JsonConvert.DeserializeObject<ModbusSignal>(signal);
                                 }
-                                if (plcSignal != null) {
-                                    plcSignal.Device = device;
+                                if (plcSignal != null)
+                                {
+                                    plcSignal.PLCLink = plclink;
                                     plcSignals.Add(plcSignal);
                                 }
-                               
-                            }
-                            
-                           
-                        }
-                        device.SubscribeToSignals(plcSignals);
-                    }
-                 
-                    #endregion
-                   
 
-                });
+                            }
+
+
+                        }
+                        plclink.SubscribeToSignals(plcSignals);
+                    }
+
+                    #endregion
+
+
+                }
 
             }
 
-            #endregion
-            #endregion
+            return result;
 
-
+            #endregion
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            _signalCollector.StopAllTimers();
+            _signalCollector.Stop();
             // 可选：处理停止逻辑
             return Task.CompletedTask;
         }

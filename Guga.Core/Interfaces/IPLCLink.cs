@@ -10,15 +10,15 @@ using System.Threading.Tasks;
 namespace Guga.Core.Interfaces
 {
     /// <summary>
-    /// 设备接口
+    /// 链路接口
     /// </summary>
-   public interface IDevice
+   public interface IPLCLink
     {
 
         /// <summary>
-        /// 设备基础信息
+        /// 链路基础信息
         /// </summary>
-        public DeviceInfo deviceInfo { get; set; }
+        public PLCLinkInfo plclinkInfo { get; set; }
 
         /// <summary>
         /// 订阅多个信号
@@ -39,7 +39,7 @@ namespace Guga.Core.Interfaces
         void UpdateSignals(IEnumerable<IPlcSignal> updatedSignals);
 
         /// <summary>
-        /// 获取当前设备订阅的所有信号
+        /// 获取当前链路订阅的所有信号
         /// </summary>
         /// <returns></returns>
         IEnumerable<IPlcSignal> GetSubscribedSignals();

@@ -4,17 +4,17 @@ using Guga.Core.Interfaces;
 namespace Guga.Collector.Interfaces
 {
     /// <summary>
-    /// 设备客户端接口
+    /// 链路客户端接口
     /// </summary>
-    public interface IDeviceClient
+    public interface IPLCLinkClient
     {
 
       
         /// <summary>
-        /// 连接设备
+        /// 连接链路
         /// </summary>
         /// <returns></returns>
-        Task<Result> ConnectAsync();
+        Task<Result> ConnectAsync(int retryCount = 3, int delayMilliseconds = 1000);
         /// <summary>
         /// 是否已连接
         /// </summary>

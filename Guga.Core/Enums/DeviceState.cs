@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Guga.Core.Enums
 {
-    public enum DeviceState
+    public enum PLCLinkState
     {
-        Enabled,    // Device is enabled
-        Disabled,   // Device is disabled
+        Enabled,    // PLCLink is enabled
+        Disabled,   // PLCLink is disabled
        
     }
 }

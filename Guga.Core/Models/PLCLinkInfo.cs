@@ -1,4 +1,5 @@
 ﻿using Guga.Core.Enums;
+using Guga.Core.PLCLinks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,33 +8,33 @@ using System.Threading.Tasks;
 
 namespace Guga.Core.Models
 {
-    public class DeviceInfo
+    public class PLCLinkInfo
     {
         /// <summary>
-        /// 设备ID
+        /// 链路ID
         /// </summary>
-        public  string DeviceId { get; set; } = string.Empty;
+        public  string PLCLinkId { get; set; } = string.Empty;
         /// <summary>
-        /// 设备名称
+        /// 链路名称
         /// </summary>
-        public  string DeviceName { get; set; } = string.Empty;
+        public  string PLCLinkName { get; set; } = string.Empty;
         /// <summary>
-        /// 设备编号
+        /// 链路编号
         /// </summary>
-        public  string DeviceCode { get; set; } = string.Empty;
+        public  string PLCLinkCode { get; set; } = string.Empty;
 
         /// <summary>
-        /// 设备状态（默认启用）
+        /// 链路状态（默认启用）
         /// </summary>
-        public  DeviceState DeviceState_ { get; set; } = DeviceState.Enabled;
+        public  PLCLinkState PLCLinkState_ { get; set; } = PLCLinkState.Enabled;
         /// <summary>
-        /// 设备类型
+        /// 链路类型
         /// </summary>
-        public  DeviceType DeviceType_ { get; set; } = DeviceType.unknown;
+        public  PLCLinkType PLCLinkType_ { get; set; } = PLCLinkType.unknown;
 
 
         /// <summary>
-        /// 设备型号 如西门子 S7-300，不需要的可为空
+        /// 链路型号 如西门子 S7-300，不需要的可为空
         /// </summary>
         public  S7CPUType? S7CPUType_ { get; set; } = null;
         /// <summary>
@@ -49,10 +50,7 @@ namespace Guga.Core.Models
         /// 槽号(s7)
         /// </summary>
         public  short slot { get; set; }
-        /// <summary>
-        /// 读取周期，以毫秒为单位，例如：1000ms
-        /// </summary>
-        public  int ReadCycle { get; set; } = 2000;
+
 
         /// <summary>
         /// IP地址
@@ -62,5 +60,10 @@ namespace Guga.Core.Models
         /// 端口
         /// </summary>
         public  int? Port { get; set; } = null;
+
+       public string GetKey()
+        {
+            return  $"{Ip}:{Port}:{ProtocolType_}";
+        }
     }
 }

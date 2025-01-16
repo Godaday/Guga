@@ -2,14 +2,15 @@
 
 <MudThemeProvider Theme="_themeManager.Theme" />
 <MudPopoverProvider />
-<MudThemeManagerButton OnClick="@((e) => OpenThemeManager(true))" />
-<MudThemeManager Open="_themeManagerOpen" OpenChanged="OpenThemeManager" Theme="_themeManager" ThemeChanged="UpdateTheme" />
+<MudThemeManagerButton OnClick="@((e) => OpenThemeManager(true))"  />
+<MudThemeManager Open="_themeManagerOpen" OpenChanged="OpenThemeManager" Theme="_themeManager" ThemeChanged="UpdateTheme"
+                />
 
 <MudLayout>
   
     <MudAppBar  Dense="true" Elevation="_themeManager.AppBarElevation" >
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        <MudText Typo="Typo.h5" Class="ml-3">Application</MudText>
+        <MudText Typo="Typo.h5" Class="ml-3">Blazor APP</MudText>
         <MudSpacer />
         <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
     </MudAppBar>
@@ -17,11 +18,21 @@
         @*NavMenu*@
         <NavMenu></NavMenu>
     </MudDrawer>
-    <MudMainContent>
+    <MudMainContent Class="main-content">
         @*Body*@
         @Body
     </MudMainContent>
 </MudLayout>
+<style>
+    .main-content {
+        margin-top: 15px;
+        padding: 8px 
+    }
+
+    .mud-theme-manager {
+        z-index: 1500;
+    }
+</style>
 @code {
     bool _drawerOpen = true;
 
@@ -32,10 +43,10 @@
     private ThemeManagerTheme _themeManager = new ThemeManagerTheme();
     public bool _themeManagerOpen = false;
 
-   public MainLayout()
+    public MainLayout()
     {
-      
-      
+        _themeManager.DrawerClipMode = DrawerClipMode.Always;
+
     }
 
     void OpenThemeManager(bool value)

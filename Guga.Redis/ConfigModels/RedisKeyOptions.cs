@@ -13,37 +13,37 @@ namespace Guga.Redis.ConfigModels
         [Required(ErrorMessage = "请配置RedisKey前缀")]
         public string KeyPrefix { get; set; }
 
-        [Required(ErrorMessage = "请配置西门子设备默认CPU机架号、槽号信息存储的RedisKey")]
+        [Required(ErrorMessage = "请配置西门子链路默认CPU机架号、槽号信息存储的RedisKey")]
         public string S7RackSlotTemple_key { get; set; }
 
-        [Required(ErrorMessage = "请配置存储设备ID Set集合的RedisKey")]
-        public string Devices_IDs_key { get; set; }
+        [Required(ErrorMessage = "请配置存储链路ID Set集合的RedisKey")]
+        public string PLCLinks_IDs_key { get; set; }
 
-        [Required(ErrorMessage = "请配置存储设备信息的RedisKey")]
-        public string Device_key { get; set; }
+        [Required(ErrorMessage = "请配置存储链路信息的RedisKey")]
+        public string PLCLink_key { get; set; }
 
         
 
-        [Required(ErrorMessage = "请配置存储设备信号信息的RedisKey")]
-        public string Devices_Signals_key { get; set; }
+        [Required(ErrorMessage = "请配置存储链路信号信息的RedisKey")]
+        public string PLCLinks_Signals_key { get; set; }
 
         /// <summary>
-        /// s7设备CPU机架号、槽号信息存储的RedisKey
+        /// s7链路CPU机架号、槽号信息存储的RedisKey
         /// </summary>
         public string _S7RackSlot => $"{KeyPrefix}:{S7RackSlotTemple_key}";
         /// <summary>
-        /// 设备ID存储Key
+        /// 链路ID存储Key
         /// </summary>
-        public string _DevicesIDs => $"{KeyPrefix}:{Devices_IDs_key}";
+        public string _PLCLinksIDs => $"{KeyPrefix}:{PLCLinks_IDs_key}";
         /// <summary>
-        /// 获取设备存储Key
+        /// 获取链路存储Key
         /// </summary>
-        public string _Device(string deviceId) => $"{KeyPrefix}:{Device_key}:{deviceId}";
-        public string _DeviceInfo(string deviceId) => $"{_Device(deviceId)}:info";
+        public string _PLCLink(string plclinkId) => $"{KeyPrefix}:{PLCLink_key}:{plclinkId}";
+        public string _PLCLinkInfo(string plclinkId) => $"{_PLCLink(plclinkId)}:info";
         /// <summary>
-        /// 获取存储设备信号信息的Key
+        /// 获取存储链路信号信息的Key
         /// </summary>
-        public string _DevicesSignals (string deviceId)=> $"{_Device(deviceId)}:{Devices_Signals_key}";
+        public string _PLCLinksSignals (string plclinkId)=> $"{_PLCLink(plclinkId)}:{PLCLinks_Signals_key}";
 
 
 

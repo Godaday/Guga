@@ -1,4 +1,4 @@
-﻿using Guga.Core.Devices;
+﻿using Guga.Core.PLCLinks;
 using Guga.Transformer.Interfaces;
 using MediatR;
 using System;
@@ -16,8 +16,8 @@ namespace Guga.Core.MediatR
     {
         public async Task Handle(SignalsChangedEvent notification, CancellationToken cancellationToken)
         {
-            var device = notification.Device_;
-           var rules = device.GetSignalToBusinessRules();
+            var plclink = notification.PLCLink_;
+           var rules = plclink.GetSignalToBusinessRules();
             foreach (var rule in rules)
             {
                 rule.ExecuteAction();

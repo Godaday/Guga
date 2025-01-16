@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Guga.Core.Enums
 {
     /// <summary>
-    /// 设备型号
+    /// 链路型号
     /// </summary>
     public  enum S7CPUType
     {

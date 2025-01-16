@@ -8,12 +8,14 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Numerics;
 using System.Runtime.Intrinsics.X86;
+using System.Text.RegularExpressions;
 
 namespace Guga.Collector
 {
 
-    public class S7Client : IDeviceClient
+    public class S7Client : IPLCLinkClient
     {
+        private object _lock = new object();
         private Plc _plc;
 
 
@@ -23,24 +25,42 @@ namespace Guga.Collector
 
         }
 
-        public async Task<Result> ConnectAsync()
+        public async Task<Result> ConnectAsync(int retryCount = 3, int delayMilliseconds = 1000)
         {
             if (IsConnected())
             {
-                return Result.Failure("设备已经连接。");
+                return Result.Failure("链路已经连接。");
             }
 
-            try
+            for (int attempt = 1; attempt <= retryCount; attempt++)
             {
-                await Task.Run(() => _plc.Open());
+                try
+                {
+                    await Task.Run(() => _plc.Open());
 
-                return Result.Success();
+                    if (IsConnected())
+                    {
+                        return Result.Success();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // 打印或记录每次失败的信息
+                    Console.WriteLine($"连接链路失败（第 {attempt} 次尝试）：{ex.Message}");
+
+                    if (attempt == retryCount)
+                    {
+                        return Result.Failure($"连接链路失败: {ex.Message}");
+                    }
+                }
+
+                // 等待一段时间再尝试
+                await Task.Delay(delayMilliseconds);
             }
-            catch (Exception ex)
-            {
-                return Result.Failure($"连接设备失败: {ex.Message}");
-            }
+
+            return Result.Failure("连接链路失败：达到最大重试次数。");
         }
+
 
         public bool IsConnected()
         {
@@ -51,7 +71,7 @@ namespace Guga.Collector
         {
             if (!IsConnected())
             {
-                return Result.Failure("设备未连接。");
+                return Result.Failure("链路未连接。");
             }
 
             try
@@ -73,7 +93,7 @@ namespace Guga.Collector
             {
                 if (!IsConnected())
                 {
-                    return OperationResult<object>.Failure("设备未连接，无法读取数据。");
+                    return OperationResult<object>.Failure("链路未连接，无法读取数据。");
                 }
                 try
                 {
@@ -110,31 +130,12 @@ namespace Guga.Collector
         {
             if (!IsConnected())
             {
-                return OperationResult<IEnumerable<IPlcSignal>>.Failure("设备未连接，无法读取数据。");
+                return OperationResult<IEnumerable<IPlcSignal>>.Failure("链路未连接，无法读取数据。");
             }
 
             try
             {
-                var signalList = signals.OfType<S7Signal>().ToList();
-                List<DataItem> dataItems = signalList // 筛选出 S7Signal 类型的信号
-     .Select(s7Signal => new DataItem
-     {
-         DataType = s7Signal.S7DataType,
-         VarType = s7Signal.S7VarType,
-         DB = s7Signal.DB,
-         BitAdr = s7Signal.BitAdr,
-         Count = s7Signal.Count,
-         StartByteAdr = s7Signal.StartByteAdr,
-         Value = null // 或者初始化为适合的数据类型
-     })
-     .ToList();
-
-                var result = new List<IPlcSignal>();
-                await _plc.ReadMultipleVarsAsync(dataItems);
-                for (int i = 0; i < dataItems.Count; i++)
-                {
-                    signalList[i].Value = dataItems[i].Value;
-                }
+               var signalList= await   Read(signals);
                 return OperationResult<IEnumerable<IPlcSignal>>.Success(signalList);
             }
             catch (Exception ex)
@@ -142,12 +143,101 @@ namespace Guga.Collector
                 return OperationResult<IEnumerable<IPlcSignal>>.Failure($"读取数据失败: {ex.Message}");
             }
         }
+        private async Task<List<S7Signal>> Read(IEnumerable<IPlcSignal> signals)
+        {
+            var signalList = signals.OfType<S7Signal>().ToList();
+
+            // 将信号转换为 DataItem
+            List<DataItem> dataItems = new List<DataItem>();
+
+            try
+            {
+                foreach (var s in signalList)
+                {
+                    if (!string.IsNullOrEmpty(s.Address))
+                    {
+                        //var ss = s.PLCLink.plclinkInfo.ProtocolType_.ToString().ToUpper();
+                        //string[] prefixes = { ss }; // 协议前缀
+                        //string pattern = $"^({string.Join("|", prefixes)}\\.)";
+                        //var addressUpper = s.Address.ToUpper();
+                        //string realAddress = Regex.Replace(addressUpper, pattern, string.Empty);
+
+                        //var dataItem = DataItem.FromAddress(realAddress);
+                        var dataItem = new DataItem
+                        {
+                            DataType = s.S7DataType,
+                            VarType = s.S7VarType,
+                            DB = s.DB,
+                            BitAdr = s.BitAdr,
+                            Count = s.Count,
+                            StartByteAdr = s.StartByteAdr,
+                            Value = new object() 
+                        };
+                        if (dataItem != null)
+                        {
+                            if (s.Count > 1)
+                            {
+                                dataItem.Count = s.Count;
+                            }
+                            dataItems.Add(dataItem);
+                        }
+
+                    }
+                }
+            }
+            catch (Exception ex )
+            {
+
+                throw ex;
+            }
+           
+
+            var result = new List<S7Signal>();
+            const int maxRequestSize = 240; // 请求的最大字节长度限制
+            const int baseSize = 19; // 固定字节数
+            const int itemSize = 12; // 每个 DataItem 的字节数
+
+            // 按批次处理数据
+            for (int i = 0; i < dataItems.Count;)
+            {
+                int batchSize = Math.Min((maxRequestSize - baseSize) / itemSize, dataItems.Count - i);
+                var batch = dataItems.Skip(i).Take(batchSize).ToList();
+                i += batchSize;
+
+                // 读取当前批次数据
+                await _plc.ReadMultipleVarsAsync(batch);
+
+                // 更新 S7Signal 的值
+                for (int j = 0; j < batch.Count; j++)
+                {
+                    if (signalList[i - batchSize + j].S7VarType == VarType.S7WString)
+                    {
+                        signalList[i - batchSize + j].SetValue(batch[j].Value);
+                        //if (batch[j].Value is ushort[] ushortArray)
+                        //{
+                        //   byte[] cc=  ushortArray.SelectMany(BitConverter.GetBytes).ToArray();
+                        //   string ddd = S7WString.FromByteArray(cc);
+                        //    signalList[i - batchSize + j].SetValue(ddd);
+                        //}
+                        
+                    }
+                    else
+                    {
+                        signalList[i - batchSize + j].SetValue(batch[j].Value);
+                    }
+                  
+                   
+                }
+            }
+
+            return signalList;
+        }
 
         public async Task<Result> WriteDataAsync(IPlcSignal signal, object value)
         {
             if (!IsConnected())
             {
-                return Result.Failure("设备未连接，无法写入数据。");
+                return Result.Failure("链路未连接，无法写入数据。");
             }
             if (signal is S7Signal s7Signal)
             {
@@ -185,7 +275,7 @@ namespace Guga.Collector
         {
             if (!IsConnected())
             {
-                return Result.Failure("设备未连接，无法写入数据。");
+                return Result.Failure("链路未连接，无法写入数据。");
             }
 
             try

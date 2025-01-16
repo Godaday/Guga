@@ -13,14 +13,19 @@ namespace Guga.Core.PlcSignals
     /// </summary>
     public class ModbusSignal : IPlcSignal
     {
+
+        /// <summary>
+        /// 读取周期，以毫秒为单位，例如：1000ms
+        /// </summary>
+        public int ReadCycle { get; set; }= 200;
         public string SignalName { get; set; }
         public string Address { get; set; }
         public object? Value { get; set; }
         public byte FunctionCode { get; set; }
         public ushort StartRegister { get; set; }
         public ushort RegisterCount { get; set; }
-        public IDevice Device { get; set; }
-
+        public IPLCLink PLCLink { get; set; }
+        public DateTime CollectTime { get; set; }
         public ModbusSignal(string signalName, string address)
         {
             SignalName = signalName;
@@ -46,9 +51,14 @@ namespace Guga.Core.PlcSignals
             return Value;
         }
 
-        public void SetValue(object value)
+        public void SetValue(object value, bool updateCollectTime = true)
         {
             value = Value;
+            if (updateCollectTime)
+            {
+                CollectTime = DateTime.Now;
+            }
+
         }
     }
 }

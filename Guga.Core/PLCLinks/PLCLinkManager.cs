@@ -6,11 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Guga.Core.Devices
+namespace Guga.Core.PLCLinks
 {
-    public class DeviceManager : IDeviceManager
+    public class PLCLinkManager : IPLCLinkManager
     {
-        public List<Device> Devices { get; set; } = new List<Device>();
+        public List<PLCLink> PLCLinks { get; set; } = new List<PLCLink>();
         public List<S7RackSlotConfig> s7RackSlotDefaultConfigs { get; set; }
 
        

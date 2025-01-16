@@ -10,10 +10,10 @@ namespace Guga.Redis
 
     public interface IRedisStorageService
     {
-        public Task<IEnumerable<T>> GetDeviceIdsAsync<T>(RedisKeyOptions redisKeyOptions);
-        public Task<IEnumerable<T>> SetDeviceIdsAsync<T>(RedisKeyOptions redisKeyOptions);
-        public Task<T> GetAllDeviceAsync<T>(RedisKeyOptions redisKeyOptions);
-        public Task<T> GetDeviceAsync<T>(string deviceId);
+        public Task<IEnumerable<T>> GetPLCLinkIdsAsync<T>(RedisKeyOptions redisKeyOptions);
+        public Task<IEnumerable<T>> SetPLCLinkIdsAsync<T>(RedisKeyOptions redisKeyOptions);
+        public Task<T> GetAllPLCLinkAsync<T>(RedisKeyOptions redisKeyOptions);
+        public Task<T> GetPLCLinkAsync<T>(string plclinkId);
 
     }
 }

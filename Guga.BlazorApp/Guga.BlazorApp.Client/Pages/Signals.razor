@@ -1,0 +1,131 @@
+﻿@page "/signals"
+
+@using Guga.Collector.Interfaces
+@using Guga.Core.Interfaces
+@using Guga.Core.PLCLinks
+@inject IPLCLinkManager _plcmanager
+@inject ISignalCollector signalCollector
+<PageTitle>Weather</PageTitle>
+
+<h1>信号监测</h1>
+
+<p>系统链路及信号实时信息</p>
+
+@if (!_links.Any())
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <MudGrid>
+        <MudItem xs="3">
+            <MudButtonGroup Color="Color.Primary" Size="Size.Large" Variant="Variant.Filled">
+                <MudButton Disabled="@signalCollector.IsRunning" OnClick="start">启动</MudButton>
+                <MudDivider Vertical="true" FlexItem="true" />
+                <MudButton OnClick="restart">重启</MudButton>
+                <MudDivider Vertical="true" FlexItem="true" />
+                <MudButton OnClick="stop" Disabled="!signalCollector.IsRunning">停止</MudButton>
+                <MudDivider Vertical="true" FlexItem="true" />
+               
+          </MudButtonGroup>
+          </MudItem>
+        
+        <MudItem xs="8">
+        </MudItem>
+        <MudItem xs="1">
+            <MudNumericField @bind-Value="RefreshNumber" Min="100" Step="100" Label="刷新频率" Variant="Variant.Text" />
+        </MudItem>
+       
+       
+    </MudGrid>
+
+ 
+
+   
+
+    @foreach (var l in _links)
+    {
+
+        <MudDataGrid Items="@l.GetSubscribedSignals()">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6"> @l.plclinkInfo.ProtocolType_ : Ip:@l.plclinkInfo.Ip : @l.plclinkInfo.Port </MudText>
+                <MudSpacer />
+            </ToolBarContent>
+            <Columns>
+                <PropertyColumn Property="x => x.SignalName"  />
+                <PropertyColumn Property="x => x.ReadCycle" />
+                <PropertyColumn Property="x => x.GetValue()"  Title="Value"/>
+                <PropertyColumn Property='x => x.CollectTime.ToString("yyyy-MM-dd HH:mm:ss.fff")' />
+              
+            </Columns>
+        </MudDataGrid>
+        
+       
+    }
+}
+
+@code {
+
+    private List<PLCLink> _links = new();
+    private Timer? _timer;
+    private int refreshNumber;
+    private int RefreshNumber { 
+        get { return refreshNumber; }
+        set {
+
+            if (refreshNumber != value&&_timer!=null)
+            {
+                _timer?.Change(TimeSpan.Zero, TimeSpan.FromMilliseconds(value));
+                
+            }
+            refreshNumber=value;
+        
+        
+        } 
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+        refreshNumber = 1000;//默认1秒刷新
+        // 定时刷新数据
+        _timer = new Timer(async _ =>
+        {
+            await LoadDataAsync();
+          await   InvokeAsync(StateHasChanged); // 刷新 UI
+    }, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(refreshNumber));
+    }
+    
+    private async void start()
+    {
+
+        await  signalCollector.Start();
+    }
+    private async void stop()
+    {
+
+        await signalCollector.Stop();
+    }
+    private async void restart()
+    {
+
+        await  signalCollector.ReStart();
+    }
+
+    private Task LoadDataAsync()
+    {
+        return Task.Run(() =>
+        {
+            // 获取数据
+            _links = _plcmanager.PLCLinks;
+        });
+    }
+
+    public void Dispose()
+    {
+        // 确保定时器被清理
+        _timer?.Dispose();
+    }
+
+   
+}
