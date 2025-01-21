@@ -60,5 +60,13 @@ namespace Guga.Core.PlcSignals
             }
 
         }
+        /// <summary>
+        /// 返回信号存储JSON字符串
+        /// </summary>
+        /// <param name="dateTime"></param>
+        /// <returns></returns>
+        public string GetSignalStoreValue(DateTime? dateTime) {
+            return null;
+        }
     }
 }

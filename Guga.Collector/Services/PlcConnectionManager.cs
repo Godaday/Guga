@@ -107,7 +107,11 @@ namespace Guga.Collector.Services
         {
             foreach (var connection in _connectionPool)
             {
-                await connection.Value.ConnectAsync(_ReconnectInterval, _ReconnectCount);
+               var  result =  await connection.Value.ConnectAsync(_ReconnectCount, _ReconnectInterval);
+                if (!result.IsSuccess)
+                {
+                    throw new TimeoutException($"启动失败，建立链路达到重试上限,{connection.Key}");
+                }
             }
         }
     }

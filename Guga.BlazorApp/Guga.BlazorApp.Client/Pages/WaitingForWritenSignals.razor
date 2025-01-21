@@ -1,0 +1,222 @@
+﻿@page "/waiting-for-writen"
+@using Guga.Collector.Interfaces
+@using Guga.Collector.Services
+@using Guga.Core.Models
+@inject ICollectorRedisService _collectorRedisService;
+@inject ISignalWriter _signalWriterService
+@inject ISnackbar Snackbar
+@inject ISimulatedSignalWriter _simulatedSignalWriter
+@inject ISnackbar Snackbar
+
+
+<MudToolBar >
+   
+       
+        <MudButtonGroup Color="Color.Primary" Size="Size.Large" Variant="Variant.Filled">
+        <MudButton Disabled="@_simulatedSignalWriter.SimulatedSignalWriteState" OnClick='SignalWriterStart'>
+            Sim Start
+        </MudButton>
+
+
+
+        <MudButton OnClick="SignalWriterStop" Disabled="!_simulatedSignalWriter.SimulatedSignalWriteState">
+            Sim Stop
+        </MudButton>
+
+        <MudButton Disabled="@_signalWriterService.IsRunning" OnClick='start'>Write Start</MudButton>
+
+        <MudButton OnClick="restart" Disabled="!_signalWriterService.IsRunning">Write ReStart</MudButton>
+
+        <MudButton OnClick="stop" Disabled="!_signalWriterService.IsRunning">Write Stop</MudButton>
+
+
+
+        </MudButtonGroup>
+    <MudSpacer />
+    <MudChip T="string" Icon="@Icons.Material.Filled.Grain"
+             Label="true" Color="Color.Default">
+        Queue Size: <MudDivider Vertical="true" FlexItem="true" />@_collectorRedisService._CurrentWriteQueueLength
+    </MudChip>
+   
+
+</MudToolBar>
+
+
+<MudToolBar Class="d-flex flex-nowrap gap-4 overflow-auto">
+
+  
+        <MudNumericField @bind-Value="_signalWriterService._MaxProcessCount"
+                         Min="5" Step="100" Label="模拟单次写入数量" Variant="Variant.Text" AdornmentText="n" />
+
+
+  
+
+
+
+    
+        <MudNumericField Class="mud-input-root" @bind-Value="_simulatedSignalWriter.SimulatedSignalWriteInterval"
+                         Min="50" Step="100" Label="模拟产生间隔" Variant="Variant.Text" AdornmentText="ms" />
+   
+
+    
+       
+
+    <MudNumericField   @bind-Value="_signalWriterService._WriteInterval"
+                     Min="50" Step="100" Label="写入间隔" Variant="Variant.Text" AdornmentText="ms" />
+   
+
+ 
+        
+
+       
+        <MudNumericField Class="mud-input-root" @bind-Value="_TopCount" Min="10" Max="100" Step="5" Label="Top"
+                     Variant="Variant.Text" AdornmentText="n"  />
+                   
+        <MudNumericField @bind-Value="RefreshInterval" Min="100" Step="100" Label="刷新频率" Variant="Variant.Text"
+                     />
+  
+
+
+
+
+
+</MudToolBar>
+
+<MudDataGrid Items="@_WaitingForWritenSignals">
+    
+    <Columns>
+        <PropertyColumn Property="x => x.LinkCode" />
+        <PropertyColumn Property="x => x.Address" />
+        <PropertyColumn Property="x => x.Value" />
+        <PropertyColumn Property='x => x.CreateTime.HasValue?x.CreateTime.Value.ToString("yyyy-MM-dd HH:mm:ss.fff"):""' Title="CreateTime" />
+
+    </Columns>
+</MudDataGrid>
+<style >
+    .mud-input-root {
+        width: 100px !important; /* 改变默认宽度 */
+    }
+</style>
+@code {
+    private List<SignalWriteModel> _WaitingForWritenSignals = new();
+    private int _TopCount { get; set; } = 20;
+    private Timer? _timer;
+    private int refreshInterval=1000;
+    private int RefreshInterval
+    {
+        get { return refreshInterval; }
+        set
+        {
+
+            if (refreshInterval != value && _timer != null)
+            {
+                _timer?.Change(TimeSpan.Zero, TimeSpan.FromMilliseconds(value));
+
+            }
+            refreshInterval = value;
+
+
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSignalWriteData();
+        _timer = new Timer(async _ =>
+      {
+          await LoadSignalWriteData();
+          await InvokeAsync(StateHasChanged); // 刷新 UI
+      }, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(refreshInterval));
+    }
+
+    /// <summary>
+    /// 加载待写入的信号数据
+    /// </summary>
+    /// <returns></returns>
+    private async Task LoadSignalWriteData()
+    {
+
+        var loadResult = await _collectorRedisService.PeekSignalWriteDataAsync(0, _TopCount);
+        if (loadResult != null && loadResult.Any())
+        {
+            _WaitingForWritenSignals = loadResult.ToList();
+        }
+        else
+        {
+            _WaitingForWritenSignals.Clear();
+        }
+    }
+    private  void SignalWriterStart()
+    {
+        
+        try
+        {
+            _simulatedSignalWriter.Start();
+            Snackbar.Add(severity: Severity.Success, message: "模拟产生写入信号数据服务启动");
+        }
+
+        catch (Exception ex)
+        {
+            Snackbar.Add(severity: Severity.Error, message: ex.Message);
+        }
+
+    }
+    private  void SignalWriterStop()
+    {
+        try
+        {
+            _simulatedSignalWriter.Stop();
+            Snackbar.Add(severity: Severity.Warning, message: "模拟产生写入信号数据服务停止");
+        }
+
+        catch (Exception ex)
+        {
+            Snackbar.Add(severity: Severity.Error, message: ex.Message);
+        }
+
+    }
+    private async void start()
+    {
+        try
+        {
+            await _signalWriterService.Start();
+            Snackbar.Add(severity: Severity.Success, message: "信号写入服务启动");
+        }
+
+        catch (Exception ex)
+        {
+            Snackbar.Add(severity: Severity.Error, message: ex.Message);
+        }
+
+    }
+    private async void stop()
+    {
+        try
+        {
+            await _signalWriterService.Stop();
+            Snackbar.Add(severity: Severity.Warning, message: "信号写入服务暂停");
+        }
+
+        catch (Exception ex)
+        {
+            Snackbar.Add(severity: Severity.Error, message: ex.Message);
+        }
+      
+       
+    }
+    private async void restart()
+    {
+
+        try
+        {
+            await _signalWriterService.ReStart();
+            Snackbar.Add(severity: Severity.Success, message: "信号写入服务重启");
+        }
+
+        catch (Exception ex)
+        {
+            Snackbar.Add(severity: Severity.Error, message: ex.Message);
+        }
+      
+    }
+}

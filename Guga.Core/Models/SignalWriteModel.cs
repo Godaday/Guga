@@ -6,24 +6,33 @@ using System.Threading.Tasks;
 
 namespace Guga.Core.Models
 {
+
     /// <summary>
-    /// 信号写入值的Model
-    /// {
-    /// "SignalAddress": "LinkCode:DB1.DBW5",
-    ///   "Value": 122
-    ///   }
+    /// 信号写入队列
     /// </summary>
     public class SignalWriteModel
     {
    
-
-       public string SignalAddress { get; set; }
+       /// <summary>
+       /// 链路名称
+       /// </summary>
+      public string LinkCode { get; set; }
+       /// <summary>
+       /// 信号地址
+       /// </summary>
+       public string  Address { get; set; }
+       /// <summary>
+       /// 写入信号的地址
+       /// </summary>
         public object Value { get; set; }
+        public DateTime? CreateTime { get; set; }
 
-        public SignalWriteModel(string signalAddress, object value)
+        public SignalWriteModel(string linkCode,string signalAddress, object value)
         {
-            SignalAddress = signalAddress;
+            Address = signalAddress;
             Value = value;
+            LinkCode = linkCode;
+            CreateTime=DateTime.Now;
         }
     }
 }

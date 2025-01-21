@@ -15,7 +15,7 @@ public class ContinuousWriter
 {
     private readonly S7Client _s7Client;
     private CancellationTokenSource _cancellationTokenSource;
-    private  readonly Random RandomGenerator = new Random();
+    private static  readonly Random RandomGenerator = new Random();
     public ContinuousWriter(S7Client s7Client)
     {
         _s7Client = s7Client ?? throw new ArgumentNullException(nameof(s7Client));
@@ -84,7 +84,7 @@ public class ContinuousWriter
     }
 
 
-    object GetDefaultValueForSignal(IPlcSignal signal)
+  public static  object GetDefaultValueForSignal(IPlcSignal signal)
     {
         
 
@@ -105,7 +105,7 @@ public class ContinuousWriter
         }
         throw new InvalidOperationException("Signal is not an S7Signal.");
     }
-    string GenerateRandomString(int length)
+  static  string GenerateRandomString(int length)
     {
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789一二三四五六七八九十";
         var randomString = new string(Enumerable.Repeat(chars, length)

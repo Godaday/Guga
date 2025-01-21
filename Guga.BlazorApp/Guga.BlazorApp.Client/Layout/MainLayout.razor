@@ -1,17 +1,16 @@
 ﻿@inherits LayoutComponentBase
 
-<MudThemeProvider Theme="_themeManager.Theme" />
-<MudPopoverProvider />
-<MudThemeManagerButton OnClick="@((e) => OpenThemeManager(true))"  />
-<MudThemeManager Open="_themeManagerOpen" OpenChanged="OpenThemeManager" Theme="_themeManager" ThemeChanged="UpdateTheme"
-                />
-
 <MudLayout>
-  
+    <MudThemeProvider Theme="_themeManager.Theme" />
+    <MudPopoverProvider />
+   
+    <MudThemeManager Open="_themeManagerOpen" OpenChanged="OpenThemeManager" Theme="_themeManager" ThemeChanged="UpdateTheme" />
+    <MudSnackbarProvider/>
     <MudAppBar  Dense="true" Elevation="_themeManager.AppBarElevation" >
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        <MudText Typo="Typo.h5" Class="ml-3">Blazor APP</MudText>
+        <MudText Typo="Typo.h5" Class="ml-3">SimuSense</MudText>
         <MudSpacer />
+        <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Inherit" OnClick="@((e) => OpenThemeManager(true))" />
         <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
     </MudAppBar>
     <MudDrawer @bind-Open="_drawerOpen" ClipMode="_themeManager.DrawerClipMode" Elevation="_themeManager.DrawerElevation">
@@ -45,7 +44,9 @@
 
     public MainLayout()
     {
+
         _themeManager.DrawerClipMode = DrawerClipMode.Always;
+      
 
     }
 

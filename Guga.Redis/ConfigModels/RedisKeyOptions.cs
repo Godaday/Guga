@@ -27,6 +27,12 @@ namespace Guga.Redis.ConfigModels
         [Required(ErrorMessage = "请配置存储链路信号信息的RedisKey")]
         public string PLCLinks_Signals_key { get; set; }
 
+        [Required(ErrorMessage = "请配置信号写入队列的RedisKey")]
+        public string Signals_Write_Queue_key { get; set; }
+
+        [Required(ErrorMessage = "请配置存储信号值的RedisKey")]
+        public string Signal_Values_key { get; set; }
+
         /// <summary>
         /// s7链路CPU机架号、槽号信息存储的RedisKey
         /// </summary>
@@ -44,6 +50,13 @@ namespace Guga.Redis.ConfigModels
         /// 获取存储链路信号信息的Key
         /// </summary>
         public string _PLCLinksSignals (string plclinkId)=> $"{_PLCLink(plclinkId)}:{PLCLinks_Signals_key}";
+
+        /// <summary>
+        /// 信号写入队列的RedisKey
+        /// </summary>
+        public string _Signals_Write=> $"{KeyPrefix}:{Signals_Write_Queue_key}";
+
+        public string _Signal_Values => $"{KeyPrefix}:{Signal_Values_key}";
 
 
 

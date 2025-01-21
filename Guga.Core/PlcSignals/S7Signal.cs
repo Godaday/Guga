@@ -1,7 +1,10 @@
 ﻿using Guga.Core.Interfaces;
 using Guga.Core.Models;
+using Newtonsoft.Json;
 using S7.Net;
 using System.ComponentModel.DataAnnotations;
+using System.Net.Http.Json;
+using System.Text.Json.Serialization;
 
 namespace Guga.Core.PlcSignals
 {
@@ -65,6 +68,25 @@ namespace Guga.Core.PlcSignals
                 CollectTime = DateTime.Now;
             }
             
+        }
+        /// <summary>
+        /// 返回信号存储JSON字符串
+        /// </summary>
+        /// <param name="dateTime"></param>
+        /// <returns></returns>
+        public string GetSignalStoreValue(DateTime? dateTime ) {
+            if (dateTime == null)
+            {
+                dateTime=DateTime.Now;
+            }
+            var t = new SignalValueModel() {
+                LinkCode =this.PLCLink.plclinkInfo.PLCLinkCode,
+                Address =this.Address,
+                Value = this.Value,
+                CollectorTime = dateTime
+                
+            };
+          return  JsonConvert.SerializeObject(t);
         }
     }
 

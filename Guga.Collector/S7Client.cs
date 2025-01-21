@@ -29,10 +29,15 @@ namespace Guga.Collector
         {
             if (IsConnected())
             {
-                return Result.Failure("链路已经连接。");
+                 return Result.Success();
             }
-
-            for (int attempt = 1; attempt <= retryCount; attempt++)
+            var _retryCount= retryCount;
+            //-1 表示一直重试
+            if (retryCount == -1)
+            {
+                _retryCount=int.MaxValue;
+            }
+            for (int attempt = 1; attempt <= _retryCount; attempt++)
             {
                 try
                 {

@@ -17,7 +17,10 @@ namespace Guga.Collector
             services.AddSingleton<IPlcConnectionManager>(provider =>
     new PlcConnectionManager(3000, 10));//采集器连接失败重试次数，及重试间隔
             services.AddSingleton<ISignalCollector, SignalCollector>();
-          
+            services.AddSingleton<ICollectorRedisService, CollectorRedisService>();
+            services.AddSingleton<ISignalWriter, SignalWriter>();
+            //模拟信号写入产生服务
+            services.AddSingleton<ISimulatedSignalWriter, SimulatedSignalWriter>();
             return services;
         }
     }

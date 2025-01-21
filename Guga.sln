@@ -17,11 +17,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Guga.Core", "Guga.Core\Guga
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Guga.ConsoleApp", "Guga.ConsoleApp\Guga.ConsoleApp.csproj", "{60FEC220-B13D-4941-B5F3-AA621F00EB52}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guga.BlazorApp", "Guga.BlazorApp\Guga.BlazorApp\Guga.BlazorApp.csproj", "{DDA62FC5-7524-4817-B7FD-C3121488BCBB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Guga.BlazorApp", "Guga.BlazorApp\Guga.BlazorApp\Guga.BlazorApp.csproj", "{DDA62FC5-7524-4817-B7FD-C3121488BCBB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guga.BlazorApp.Client", "Guga.BlazorApp\Guga.BlazorApp.Client\Guga.BlazorApp.Client.csproj", "{687D96BB-D71F-45F8-BBDF-CB0C168C4B40}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Guga.BlazorApp.Client", "Guga.BlazorApp\Guga.BlazorApp.Client\Guga.BlazorApp.Client.csproj", "{687D96BB-D71F-45F8-BBDF-CB0C168C4B40}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guga.Redis", "Guga.Redis\Guga.Redis.csproj", "{13D0DCA7-0A71-4507-9048-FB1C6D40B46A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Guga.Redis", "Guga.Redis\Guga.Redis.csproj", "{13D0DCA7-0A71-4507-9048-FB1C6D40B46A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

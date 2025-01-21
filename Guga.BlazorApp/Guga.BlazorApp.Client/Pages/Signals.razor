@@ -1,46 +1,44 @@
 ﻿@page "/signals"
-
+@inject ISnackbar Snackbar
 @using Guga.Collector.Interfaces
 @using Guga.Core.Interfaces
 @using Guga.Core.PLCLinks
 @inject IPLCLinkManager _plcmanager
 @inject ISignalCollector signalCollector
-<PageTitle>Weather</PageTitle>
 
-<h1>信号监测</h1>
 
-<p>系统链路及信号实时信息</p>
+
+<MudGrid>
+    <MudItem xs="4">
+        <MudButtonGroup Color="Color.Primary" Size="Size.Large" Variant="Variant.Filled">
+            <MudButton Disabled="@signalCollector.IsRunning" OnClick="start">Start</MudButton>
+            <MudDivider Vertical="true" FlexItem="true" />
+            <MudButton OnClick="restart" Disabled="!signalCollector.IsRunning">ReStart</MudButton>
+            <MudDivider Vertical="true" FlexItem="true" />
+            <MudButton OnClick="stop" Disabled="!signalCollector.IsRunning">Stop</MudButton>
+            <MudDivider Vertical="true" FlexItem="true" />
+
+        </MudButtonGroup>
+    </MudItem>
+
+    <MudItem xs="6">
+    </MudItem>
+    <MudItem xs="2">
+        <MudNumericField @bind-Value="RefreshInterval" Min="100" Step="100" Label="刷新频率" Variant="Variant.Text" />
+    </MudItem>
+
+
+</MudGrid>
+
+
 
 @if (!_links.Any())
 {
-    <p><em>Loading...</em></p>
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
 }
 else
 {
-    <MudGrid>
-        <MudItem xs="3">
-            <MudButtonGroup Color="Color.Primary" Size="Size.Large" Variant="Variant.Filled">
-                <MudButton Disabled="@signalCollector.IsRunning" OnClick="start">启动</MudButton>
-                <MudDivider Vertical="true" FlexItem="true" />
-                <MudButton OnClick="restart">重启</MudButton>
-                <MudDivider Vertical="true" FlexItem="true" />
-                <MudButton OnClick="stop" Disabled="!signalCollector.IsRunning">停止</MudButton>
-                <MudDivider Vertical="true" FlexItem="true" />
-               
-          </MudButtonGroup>
-          </MudItem>
-        
-        <MudItem xs="8">
-        </MudItem>
-        <MudItem xs="1">
-            <MudNumericField @bind-Value="RefreshNumber" Min="100" Step="100" Label="刷新频率" Variant="Variant.Text" />
-        </MudItem>
-       
-       
-    </MudGrid>
-
- 
-
+    
    
 
     @foreach (var l in _links)
@@ -68,49 +66,72 @@ else
 
     private List<PLCLink> _links = new();
     private Timer? _timer;
-    private int refreshNumber;
-    private int RefreshNumber { 
-        get { return refreshNumber; }
-        set {
+    private int refreshInterval = 1000;
+    private int RefreshInterval
+    {
+        get { return refreshInterval; }
+        set
+        {
 
-            if (refreshNumber != value&&_timer!=null)
+            if (refreshInterval != value && _timer != null)
             {
                 _timer?.Change(TimeSpan.Zero, TimeSpan.FromMilliseconds(value));
-                
+
             }
-            refreshNumber=value;
-        
-        
-        } 
+            refreshInterval = value;
+
+
+        }
     }
 
     protected override async Task OnInitializedAsync()
     {
         await LoadDataAsync();
-        refreshNumber = 1000;//默认1秒刷新
-        // 定时刷新数据
+
         _timer = new Timer(async _ =>
         {
             await LoadDataAsync();
-          await   InvokeAsync(StateHasChanged); // 刷新 UI
-    }, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(refreshNumber));
+            await   InvokeAsync(StateHasChanged); // 刷新 UI
+        }, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(refreshInterval));
     }
-    
+
     private async void start()
     {
+        try
+        {
+            await signalCollector.Start();
+            Snackbar.Add(severity: Severity.Success,message: "信号采集器启动");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(severity: Severity.Error, message: ex.Message);
+        }
 
-        await  signalCollector.Start();
     }
     private async void stop()
     {
-
-        await signalCollector.Stop();
+        try{
+            await signalCollector.Stop();
+            Snackbar.Add(severity: Severity.Warning, message: "信号采集器暂停运行");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(severity: Severity.Error, message: ex.Message);
+        }
     }
     private async void restart()
     {
-
-        await  signalCollector.ReStart();
+        try
+        {
+            await signalCollector.ReStart();
+            Snackbar.Add(severity: Severity.Success, message: "信号采集器重启");
+        
+     }
+    catch (Exception ex)
+    {
+        Snackbar.Add(severity: Severity.Error, message: ex.Message);
     }
+}
 
     private Task LoadDataAsync()
     {

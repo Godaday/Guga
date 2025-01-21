@@ -41,6 +41,12 @@ namespace Guga.Core.Interfaces
         /// <typeparam name="TConfig">配置的具体类型。</typeparam>
         /// <param name="config">配置信息。</param>
         void Configure<TConfig>(TConfig config);
+        /// <summary>
+        /// 返回信号存储JSON字符串
+        /// </summary>
+        /// <param name="dateTime"></param>
+        /// <returns></returns>
+        public string GetSignalStoreValue(DateTime? dateTime);
     }
 
     

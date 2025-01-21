@@ -8,6 +8,7 @@ using Guga.Core.PlcSignals;
 using Guga.Redis.ConfigModels;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using System.Collections.Concurrent;
 
 namespace Guga.Collector.Services
 {
@@ -29,7 +30,7 @@ namespace Guga.Collector.Services
         private readonly IPLCLinkFactory _pLCLinkFactory;
         private readonly IPLCLinkManager _plclinkManager;
 
-        private  GetPlcLinksDelegate _getPlcLinks;//获取链路委托
+        private  GetPlcLinksDelegate? _getPlcLinks;//获取链路委托
         public SignalCollector(IPlcConnectionManager connectionManager, IOptions<RedisKeyOptions> redisKeyOptions,
             IRedisHelper redisHelper, IPLCLinkFactory pLCLinkFactory, IPLCLinkManager plclinkManager)
         {
@@ -78,13 +79,14 @@ namespace Guga.Collector.Services
         /// </summary>
         public async Task Start()
         {
-           await  _connectionManager.ConnectionAllAsync();
+            Running = true;
+            await  _connectionManager.ConnectionAllAsync();
             foreach (var item in _timers)
             {
                
                 item.Value.Change(0, GetTimerKey(item.Key) );//启动定时器
             }
-            Running =true;
+       
 #if DEBUG
             Console.WriteLine("定时器已启动");
 #endif
@@ -205,6 +207,13 @@ namespace Guga.Collector.Services
                 var signalResult = await connection.ReadDataAsync(signals);
                 if (signalResult.IsSuccess)
                 {
+                    //将采集到的信号写入Redis
+                    ConcurrentDictionary<string, string> entries = new ConcurrentDictionary<string, string>();
+                    foreach (var signal in signals) 
+                        {
+                            entries.TryAdd($"{signal.PLCLink.plclinkInfo.PLCLinkCode}:{signal.Address}", signal.GetSignalStoreValue(null));
+                        }
+                   await _redisHelper.HashSetAsync(_redisKeyOptions._Signal_Values, entries);
                     //plclink.UpdateSignals(signalResult.Data);
                 }
             }
@@ -228,6 +237,7 @@ namespace Guga.Collector.Services
             if (signalResult.IsSuccess)
             {
                 signal.SetValue(signalResult.Data);  // 更新信号值
+                
             }
             
            // plclink.UpdateSignals(new List{ signal });  // 更新链路的信号
