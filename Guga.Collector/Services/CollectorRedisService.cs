@@ -3,7 +3,9 @@ using Guga.Collector.Interfaces;
 using Guga.Core.Models;
 using Guga.Redis.ConfigModels;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -40,6 +42,32 @@ namespace Guga.Collector.Services
         public async Task<long> EnqueueAsyncSignalWriteDataAsync(SignalWriteModel signalWriteModel)
         {
             return await EnqueueAsync<SignalWriteModel>(_redisKeyOptions._Signals_Write, signalWriteModel);
+
+        }
+        /// <summary>
+        /// 信号值读取
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="signalWriteModel"></param>
+        /// <returns>入队后队列长度</returns>
+        public async Task<ConcurrentDictionary<string, SignalValueModel>> SearchSignalValueAsync(List<string> keys)
+        {
+            ConcurrentDictionary<string, string> result
+                = await _redisHelper.HashGetFieldsAsync(_redisKeyOptions._Signal_Values, keys);
+
+            ConcurrentDictionary<string, SignalValueModel> targetDict = new ConcurrentDictionary<string, SignalValueModel>();
+
+            foreach (var kvp in result)
+            {
+
+                if (!string.IsNullOrWhiteSpace(kvp.Value))
+                {
+                    // 添加到目标字典
+                    targetDict.TryAdd(kvp.Key, JsonConvert.DeserializeObject<SignalValueModel>(kvp.Value));
+                }
+
+            }
+            return targetDict;
 
         }
         /// <summary>
@@ -110,6 +138,15 @@ namespace Guga.Collector.Services
         {
             return await _redisHelper.PeekRangeAsync<T>(key, start, stop);
         }
+        #endregion
+        #region 其他
+        public async Task<List<S7RackSlotConfig>> S7RackSlotConfigs()
+        {
+            var s7RackSlotredisKey = _redisKeyOptions._S7RackSlot;
+            var redis_S7RackSlot = await _redisHelper.StringGetAsync<List<S7RackSlotConfig>>(s7RackSlotredisKey);
+            return redis_S7RackSlot;
+        }
+       
         #endregion
 
     }

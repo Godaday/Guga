@@ -25,7 +25,7 @@ namespace Guga.Collector
 
         }
 
-        public async Task<Result> ConnectAsync(int retryCount = 3, int delayMilliseconds = 1000)
+        public async Task<Result> ConnectAsync(int retryCount, int delayMilliseconds)
         {
             if (IsConnected())
             {

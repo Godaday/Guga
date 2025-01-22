@@ -28,19 +28,28 @@ namespace Guga.Collector.Services
         {
             _MaxProcessCount = maxProcessCount - 1;
             _WriteInterval = writeInterval;
-            _timer = new Timer(async _ => await WriteSiganlAsync(), null, Timeout.Infinite, Timeout.Infinite);
+            _timer = new Timer(async _ => await WriteSiganlForTimerAsync(), null, Timeout.Infinite, Timeout.Infinite);
 #if DEBUG
             Console.WriteLine("写入信号服务 初始化完成");
 #endif
             return this;
         }
+
+        public async Task WriteSiganlForTimerAsync() { 
+        
+               bool linkConnected = await WriteSiganl_Async();
+            if (!linkConnected)
+            {
+              await   _connectionManager.ConnectionAllAsync();
+            }
+        }
         /// <summary>
         /// 读取数据写入信号
         /// </summary>
         /// <returns></returns>
-        private async Task WriteSiganlAsync()
+        private async Task<bool> WriteSiganl_Async()
         {
-
+            bool linkConnected = true;
             //获取指定数量的待写入信号数据
             var pendingSignals = await _collectorRedisService.PeekSignalWriteDataAsync(stop: _MaxProcessCount-1);
             if (pendingSignals!=null&&pendingSignals.Any() && _plclinkManager.PLCLinks.Any())
@@ -58,6 +67,12 @@ namespace Guga.Collector.Services
                         {
                             //获取链路的连接
                             var linkConn = _connectionManager.GetConnection(link);
+                            if (!linkConn.IsConnected())
+                            {
+                                linkConnected = false;
+                                return linkConnected;
+                            }
+
                             try
                             {
                                 var writeResult = await linkConn.WriteDataAsync(signal, s.Value);
@@ -84,8 +99,11 @@ namespace Guga.Collector.Services
                         }
 
                     }
+                   
                 }
             }
+           
+            return linkConnected;
         }
       
 

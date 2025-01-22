@@ -1,7 +1,11 @@
 ﻿
+using ColinChang.RedisHelper;
+using Guga.Collector.ConfigModel;
 using Guga.Collector.Interfaces;
 using Guga.Collector.Services;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Guga.Collector
 {
@@ -14,8 +18,13 @@ namespace Guga.Collector
         /// <returns></returns>
         public static IServiceCollection AddGugaCollectorServices(this IServiceCollection services)
         {
-            services.AddSingleton<IPlcConnectionManager>(provider =>
-    new PlcConnectionManager(3000, 10));//采集器连接失败重试次数，及重试间隔
+
+            services.AddSingleton<IPlcConnectionManager>(provider => {
+
+                var options = provider.GetRequiredService<IOptions<LinkConectionOptions>>().Value;
+              return  new PlcConnectionManager(options.retryInterval, options.retryCount);
+                
+            });//采集器连接失败重试次数，及重试间隔
             services.AddSingleton<ISignalCollector, SignalCollector>();
             services.AddSingleton<ICollectorRedisService, CollectorRedisService>();
             services.AddSingleton<ISignalWriter, SignalWriter>();

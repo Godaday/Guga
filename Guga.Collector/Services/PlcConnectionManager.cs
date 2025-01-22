@@ -22,8 +22,10 @@ namespace Guga.Collector.Services
         /// </summary>
         private readonly Dictionary<string, IPLCLinkClient> _connectionPool = new();
 
-        private int _ReconnectInterval = 3000;
-        private int _ReconnectCount = 3;
+        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+
+        private int _ReconnectInterval;
+        private int _ReconnectCount;
         public PlcConnectionManager(int reconnectInterval,int reconnectCount)
         {
             _ReconnectInterval = reconnectInterval;
@@ -105,14 +107,26 @@ namespace Guga.Collector.Services
 
       public async  Task ConnectionAllAsync()
         {
-            foreach (var connection in _connectionPool)
+            await _semaphore.WaitAsync();
+
+            try
             {
-               var  result =  await connection.Value.ConnectAsync(_ReconnectCount, _ReconnectInterval);
-                if (!result.IsSuccess)
+                foreach (var connection in _connectionPool)
                 {
-                    throw new TimeoutException($"启动失败，建立链路达到重试上限,{connection.Key}");
+                    var result = await connection.Value.ConnectAsync(_ReconnectCount, _ReconnectInterval);
+                    if (!result.IsSuccess)
+                    {
+                        throw new TimeoutException($"启动失败，建立链路达到重试上限,{connection.Key}");
+                    }
                 }
+
             }
+            finally {
+                _semaphore.Release();
+            }
+           
+            
+           
         }
     }
 }

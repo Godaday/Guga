@@ -1,16 +1,7 @@
-﻿using S7.Net.Types;
-using S7.Net;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using S7.Net;
+using S7.Net.Types;
 
-namespace Guga.Collector
-{
-    using S7.Net.Types;
-    using S7.Net;
-    using System;
+
 
     namespace Guga.Collector
     {
@@ -83,4 +74,4 @@ namespace Guga.Collector
 
 
 
-}
+

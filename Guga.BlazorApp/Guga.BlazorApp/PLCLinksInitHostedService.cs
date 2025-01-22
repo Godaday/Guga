@@ -1,6 +1,6 @@
 ﻿using ColinChang.RedisHelper;
 using Guga.Collector;
-using Guga.Collector.Guga.Collector;
+using Guga.Collector;
 using Guga.Collector.Interfaces;
 using Guga.Collector.Services;
 using Guga.Core.Enums;
@@ -102,39 +102,11 @@ namespace Guga.BlazorApp
             await _signalCollector.Init(getAllPLcLinks);
             await _signalCollector.Start();
             #endregion
-            #region 启动信号写入监测服务
+            #region 信号写入服务
             _signalWriterService.Init(2000, 50);
             await _signalWriterService.Start();
-
-            //var s7Client = new S7Client("127.0.0.1", CpuType.S71200, 0, 0);
-            //s7Client.ConnectAsync().Wait();
-            //var continuousWriter = new ContinuousWriter(s7Client);
-            //continuousWriter.StartWriting(s7Signals);
-
-            //模拟写入
-            //Task.Run(async () =>
-            //{
-            //    while (_signalWriterService.SimulatedSignalWriteState)
-            //    {
-            //        foreach (var d in _plclinkManager.PLCLinks)
-            //        {
-            //            var kk = d.GetSubscribedSignals();
-            //            foreach (var k in kk)
-            //            {
-            //                object value = ContinuousWriter.GetDefaultValueForSignal(k);
-            //                 _collectorRedisService.EnqueueAsyncSignalWriteDataAsync(
-            //                       new SignalWriteModel(
-            //                           d.plclinkInfo.PLCLinkCode,
-            //                           k.Address, value
-            //                           ));
-            //            }
-            //             Task.Delay(_signalWriterService.SimulatedSignalWriteInterval);
-            //        }
-
-            //    }
-
-            //});
-
+            #endregion
+            #region 产生写入数据
             _simulatedSignalWriter.Start();
             #endregion
 

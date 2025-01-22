@@ -209,13 +209,17 @@ namespace Guga.Collector.Services
                 {
                     //将采集到的信号写入Redis
                     ConcurrentDictionary<string, string> entries = new ConcurrentDictionary<string, string>();
-                    foreach (var signal in signals) 
-                        {
-                            entries.TryAdd($"{signal.PLCLink.plclinkInfo.PLCLinkCode}:{signal.Address}", signal.GetSignalStoreValue(null));
-                        }
-                   await _redisHelper.HashSetAsync(_redisKeyOptions._Signal_Values, entries);
+                    foreach (var signal in signals)
+                    {
+                        entries.TryAdd($"{signal.PLCLink.plclinkInfo.PLCLinkCode}:{signal.Address}", signal.GetSignalStoreValue(null));
+                    }
+                    await _redisHelper.HashSetAsync(_redisKeyOptions._Signal_Values, entries);
                     //plclink.UpdateSignals(signalResult.Data);
                 }
+            }
+            else
+            {
+              await  _connectionManager.ConnectionAllAsync();
             }
             
 

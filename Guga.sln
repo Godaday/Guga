@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Guga.EventHub", "Guga.Event
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Guga.ProcessFlow", "Guga.ProcessFlow\Guga.ProcessFlow.csproj", "{DFC24865-69EB-4CFA-8B91-A2FCF458F8D0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Guga.TaskScheduler", "Guga.TaskScheduler\Guga.TaskScheduler.csproj", "{C9EDFFFB-B85B-4FB3-ABEE-A51708F7018E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Guga.Scheduler", "Guga.TaskScheduler\Guga.Scheduler.csproj", "{C9EDFFFB-B85B-4FB3-ABEE-A51708F7018E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Guga.Core", "Guga.Core\Guga.Core.csproj", "{ECFDCD2F-D2B7-460D-AF68-B4D8AFCB5BA0}"
 EndProject
