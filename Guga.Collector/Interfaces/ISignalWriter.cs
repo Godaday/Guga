@@ -12,12 +12,13 @@ namespace Guga.Collector.Interfaces
     public interface ISignalWriter
     {
         public bool IsRunning { get; }
-
+        public bool IsUserStop { get; set; }
+        public bool IsInit { get; }
         public int _MaxProcessCount { get; set; }
         public int _WriteInterval { get; set; }
-        SignalWriter Init(int writeInterval, int maxProcessCount);
-        Task ReStart();
-        Task Start();
-        Task Stop();
+        SignalWriter Init(int writeInterval, int maxProcessCount, CancellationToken cancellationToken);
+        Task ReStart(CancellationToken cancellationToken);
+        Task Start(CancellationToken cancellationToken);
+        Task Stop(bool isUserStop = false);
     }
 }

@@ -30,6 +30,7 @@ namespace Guga.Collector
             services.AddSingleton<ISignalWriter, SignalWriter>();
             //模拟信号写入产生服务
             services.AddSingleton<ISimulatedSignalWriter, SimulatedSignalWriter>();
+            services.AddSingleton<IMasterElectionService, MasterElectionService>();
             return services;
         }
     }

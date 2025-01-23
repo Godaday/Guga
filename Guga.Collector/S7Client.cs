@@ -25,7 +25,7 @@ namespace Guga.Collector
 
         }
 
-        public async Task<Result> ConnectAsync(int retryCount, int delayMilliseconds)
+        public async Task<Result> ConnectAsync(int retryCount, int delayMilliseconds, CancellationToken cancellationToken)
         {
             if (IsConnected())
             {
@@ -41,7 +41,15 @@ namespace Guga.Collector
             {
                 try
                 {
-                    await Task.Run(() => _plc.Open());
+                    if (!cancellationToken.IsCancellationRequested)
+                    {
+                        await Task.Run(() => _plc.Open());
+                    }
+                    else {
+
+                        return Result.Failure($"重连服务取消");
+                    }
+                   
 
                     if (IsConnected())
                     {

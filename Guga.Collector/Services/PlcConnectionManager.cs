@@ -36,7 +36,7 @@ namespace Guga.Collector.Services
         /// 初始化连接管理器
         /// </summary>
         /// <param name="plclinks"></param>
-        public void Init(List<PLCLink> plclinks)
+        public void Init(List<PLCLink> plclinks,CancellationToken cancellationToken)
         {
 
             _connectionPool.Clear();
@@ -105,7 +105,7 @@ namespace Guga.Collector.Services
             }
         }
 
-      public async  Task ConnectionAllAsync()
+      public async  Task ConnectionAllAsync(CancellationToken cancellationToken)
         {
             await _semaphore.WaitAsync();
 
@@ -113,7 +113,7 @@ namespace Guga.Collector.Services
             {
                 foreach (var connection in _connectionPool)
                 {
-                    var result = await connection.Value.ConnectAsync(_ReconnectCount, _ReconnectInterval);
+                    var result = await connection.Value.ConnectAsync(_ReconnectCount, _ReconnectInterval, cancellationToken);
                     if (!result.IsSuccess)
                     {
                         throw new TimeoutException($"启动失败，建立链路达到重试上限,{connection.Key}");

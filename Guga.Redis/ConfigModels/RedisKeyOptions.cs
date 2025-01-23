@@ -32,6 +32,8 @@ namespace Guga.Redis.ConfigModels
 
         [Required(ErrorMessage = "请配置存储信号值的RedisKey")]
         public string Signal_Values_key { get; set; }
+        [Required(ErrorMessage = "请配置服务注册RedisKey")]
+        public string Server_Register_key { get; set; }
 
         /// <summary>
         /// s7链路CPU机架号、槽号信息存储的RedisKey
@@ -57,6 +59,7 @@ namespace Guga.Redis.ConfigModels
         public string _Signals_Write=> $"{KeyPrefix}:{Signals_Write_Queue_key}";
 
         public string _Signal_Values => $"{KeyPrefix}:{Signal_Values_key}";
+        public string _Server_Register => $"{KeyPrefix}:{Server_Register_key}";
 
 
 

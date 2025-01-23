@@ -67,6 +67,7 @@ else
     private List<PLCLink> _links = new();
     private Timer? _timer;
     private int refreshInterval = 1000;
+    private CancellationToken cancellationToken = new();
     private int RefreshInterval
     {
         get { return refreshInterval; }
@@ -99,7 +100,7 @@ else
     {
         try
         {
-            await signalCollector.Start();
+            await signalCollector.Start(cancellationToken);
             Snackbar.Add(severity: Severity.Success,message: "信号采集器启动");
         }
         catch (Exception ex)
@@ -111,7 +112,7 @@ else
     private async void stop()
     {
         try{
-            await signalCollector.Stop();
+            await signalCollector.Stop(true);
             Snackbar.Add(severity: Severity.Warning, message: "信号采集器暂停运行");
         }
         catch (Exception ex)
@@ -123,7 +124,7 @@ else
     {
         try
         {
-            await signalCollector.ReStart();
+            await signalCollector.ReStart(cancellationToken);
             Snackbar.Add(severity: Severity.Success, message: "信号采集器重启");
         
      }

@@ -7,13 +7,13 @@ namespace Guga.Collector.Interfaces
     public interface ISignalCollector
     {
         public bool IsRunning { get; }
-        public  Task ReLoadLinkAndSignal();
-        public Task<ISignalCollector> Init( GetPlcLinksDelegate getPlcLinksDelegate, int semaphoreSlim_MaxCount = 10);
+        public bool IsInit { get; }
+        public bool IsUserStop { get; set; }
 
-        public void AddPLCLink(PLCLink plclink);
-        public void RemovePLCLink(PLCLink plclink);
-        public Task Start();
-        public Task Stop();
-        public Task ReStart();
+        public Task ReLoadLinkAndSignal();
+        public Task<ISignalCollector> Init(GetPlcLinksDelegate getPlcLinksDelegate,CancellationToken cancellationToken, int semaphoreSlim_MaxCount = 10);
+        public Task Start(CancellationToken cancellationToken);
+        public Task Stop(bool isUserStop = false);
+        public Task ReStart(CancellationToken cancellationToken);
     }
 }

@@ -15,7 +15,8 @@ namespace Guga.Collector.Services
         public  int _WriteInterval { get;  set; } = 500;//写入读取间隔
         private Timer? _timer;
         public bool IsRunning { get; private set; } = false;
-    
+        public bool IsInit { get; private set; } = false;
+        public bool IsUserStop { get; set; } = false;
         public SignalWriter(IPlcConnectionManager plcConnectionManager, IPLCLinkManager plclinkManager,
             ICollectorRedisService collectorRedisService)
         {
@@ -24,23 +25,24 @@ namespace Guga.Collector.Services
             _collectorRedisService = collectorRedisService;
         }
 
-        public SignalWriter Init(int writeInterval, int maxProcessCount)
+        public SignalWriter Init(int writeInterval, int maxProcessCount,CancellationToken cancellationToken)
         {
             _MaxProcessCount = maxProcessCount - 1;
             _WriteInterval = writeInterval;
-            _timer = new Timer(async _ => await WriteSiganlForTimerAsync(), null, Timeout.Infinite, Timeout.Infinite);
+            _timer = new Timer(async _ => await WriteSiganlForTimerAsync(cancellationToken), null, Timeout.Infinite, Timeout.Infinite);
 #if DEBUG
             Console.WriteLine("写入信号服务 初始化完成");
 #endif
+            IsInit = true;
             return this;
         }
 
-        public async Task WriteSiganlForTimerAsync() { 
+        public async Task WriteSiganlForTimerAsync(CancellationToken cancellationToken) { 
         
                bool linkConnected = await WriteSiganl_Async();
             if (!linkConnected)
             {
-              await   _connectionManager.ConnectionAllAsync();
+              await   _connectionManager.ConnectionAllAsync(cancellationToken);
             }
         }
         /// <summary>
@@ -110,7 +112,7 @@ namespace Guga.Collector.Services
         /// <summary>
         /// 启动写入
         /// </summary>
-        public async Task Start()
+        public async Task Start( CancellationToken cancellation )
         {
             await Task.Run(() =>
             {
@@ -122,23 +124,24 @@ namespace Guga.Collector.Services
         /// <summary>
         /// 停止写入
         /// </summary>
-        public async Task Stop()
+        public async Task Stop(bool isUserStop = false)
         {
             await Task.Run(() =>
             {
                 _timer?.Change(Timeout.Infinite, Timeout.Infinite);//启动定时器
                 IsRunning = false;
             });
+            IsUserStop = isUserStop;
         }
         /// <summary>
         /// 重启
         /// </summary>
-        public async Task ReStart()
+        public async Task ReStart(CancellationToken cancellationToken)
         {
             await Task.Run(async () =>
             {
-                Init(_WriteInterval, _MaxProcessCount);
-                await Start();
+                Init(_WriteInterval, _MaxProcessCount, cancellationToken);
+                await Start(cancellationToken);
             });
         }
     }

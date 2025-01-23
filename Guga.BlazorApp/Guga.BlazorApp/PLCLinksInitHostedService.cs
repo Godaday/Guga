@@ -22,34 +22,39 @@ namespace Guga.BlazorApp
     /// </summary>
     public class PLCLinksInitHostedService : IHostedService
     {
-        private readonly IPLCLinkManager _plclinkManager;
-        private readonly IRedisHelper _redisHelper;
-        private readonly ISignalCollector _signalCollector;
+     
+     
+      
         private readonly IServiceProvider _serviceProvider;
         private readonly RedisKeyOptions _redisKeyOptions;
         private readonly IPLCLinkFactory _pLCLinkFactory;
-        private readonly ISignalWriter _signalWriterService;
+     
         private readonly ICollectorRedisService _collectorRedisService;
         private readonly ISimulatedSignalWriter _simulatedSignalWriter;
-        public PLCLinksInitHostedService(IPLCLinkManager plclinkManager, IRedisHelper redisHelper,
-            ISignalCollector signalCollector, IServiceProvider serviceProvider, IOptions<RedisKeyOptions> redisKeyOptions,
-            IPLCLinkFactory pLCLinkFactory, ISignalWriter signalWriterService, ICollectorRedisService collectorRedisService
-            , ISimulatedSignalWriter simulatedSignalWriter
+        private readonly IMasterElectionService _masterElectionService;
+        private CancellationTokenSource? _cts;
+        public PLCLinksInitHostedService( 
+            IServiceProvider serviceProvider, IOptions<RedisKeyOptions> redisKeyOptions,
+            IPLCLinkFactory pLCLinkFactory,ICollectorRedisService collectorRedisService
+            , ISimulatedSignalWriter simulatedSignalWriter,
+            IMasterElectionService masterElectionService
             )
         {
-            _plclinkManager = plclinkManager;
-            _redisHelper = redisHelper;
-            _signalCollector = signalCollector;
+            
+         
+       
             _serviceProvider = serviceProvider;
             _redisKeyOptions = redisKeyOptions.Value;
             _pLCLinkFactory = pLCLinkFactory;
-            _signalWriterService = signalWriterService;
+        
             _collectorRedisService = collectorRedisService;
             _simulatedSignalWriter= simulatedSignalWriter;
+            _masterElectionService = masterElectionService;
 
         }
         public async Task StartAsync(CancellationToken cancellationToken)
         {
+            _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var configuration = _serviceProvider.GetRequiredService<IConfiguration>();
 
 
@@ -66,8 +71,8 @@ namespace Guga.BlazorApp
                 rack = 0,
                 slot = 1,
             };
-            await _redisHelper.StringSetAsync(_redisKeyOptions._PLCLinksIDs, new List<string>() { "DV-2" });
-            await _redisHelper.StringSetAsync(_redisKeyOptions._PLCLinkInfo(plclinkInfo.PLCLinkId), plclinkInfo);
+            await _collectorRedisService._redisHelper.StringSetAsync(_redisKeyOptions._PLCLinksIDs, new List<string>() { "DV-2" });
+            await _collectorRedisService._redisHelper.StringSetAsync(_redisKeyOptions._PLCLinkInfo(plclinkInfo.PLCLinkId), plclinkInfo);
             //创建信号
             var s7Signals = CreateS7TestSignals();
             
@@ -81,34 +86,24 @@ namespace Guga.BlazorApp
                 entries.TryAdd(signal.SignalName, JsonConvert.SerializeObject(signal));
 
             } 
-              await _redisHelper.HashSetAsync(_redisKeyOptions._PLCLinksSignals(plclinkInfo.PLCLinkId), entries);
+              await _collectorRedisService._redisHelper.HashSetAsync(_redisKeyOptions._PLCLinksSignals(plclinkInfo.PLCLinkId), entries);
 
 
 
             //Check 默认配置是否存在
             #region 从 Redis 加载西门子链路不同型号机架号、插槽数据
             var s7RackSlotredisKey = _redisKeyOptions._S7RackSlot;
-            var redis_S7RackSlot = await _redisHelper.StringGetAsync<List<S7RackSlotConfig>>(s7RackSlotredisKey);
+            var redis_S7RackSlot = await _collectorRedisService._redisHelper.StringGetAsync<List<S7RackSlotConfig>>(s7RackSlotredisKey);
             if (redis_S7RackSlot == null || redis_S7RackSlot.Count == 0)
             {
                 // 从配置文件加载
 
                 var appsetting_S7RackSlot = configuration.GetSection(_redisKeyOptions.S7RackSlotTemple_key).Get<List<S7RackSlotConfig>>();
-                await _redisHelper.StringSetAsync(s7RackSlotredisKey, appsetting_S7RackSlot);
+                await _collectorRedisService._redisHelper.StringSetAsync(s7RackSlotredisKey, appsetting_S7RackSlot);
                 // await _redisHelper.HashSetAsync(s7RackSlotredisKey, appsetting_S7RackSlot);
             }
             #endregion
-            #region 启动采集
-            await _signalCollector.Init(getAllPLcLinks);
-            await _signalCollector.Start();
-            #endregion
-            #region 信号写入服务
-            _signalWriterService.Init(2000, 50);
-            await _signalWriterService.Start();
-            #endregion
-            #region 产生写入数据
-            _simulatedSignalWriter.Start();
-            #endregion
+             _masterElectionService.StartMasterElection(_cts.Token);
 
         }
         public static IEnumerable<IPlcSignal> CreateS7TestSignals()
@@ -189,13 +184,13 @@ namespace Guga.BlazorApp
         {
             List<PLCLink> result = new List<PLCLink>();
             #region 加载链路信息
-           var plclinksIds = await _redisHelper.StringGetAsync<List<string>>(_redisKeyOptions._PLCLinksIDs);
+           var plclinksIds = await _collectorRedisService._redisHelper.StringGetAsync<List<string>>(_redisKeyOptions._PLCLinksIDs);
             if (plclinksIds.Any())
             {
                 var task = plclinksIds.Select(async plclinkId =>
                 {
                     // 这里调用你的 HashGetAsync 方法获取链路信息
-                    var plclinkData = await _redisHelper.StringGetAsync<PLCLinkInfo>($"{_redisKeyOptions._PLCLinkInfo(plclinkId)}");
+                    var plclinkData = await _collectorRedisService._redisHelper.StringGetAsync<PLCLinkInfo>($"{_redisKeyOptions._PLCLinkInfo(plclinkId)}");
                     return plclinkData;
                 });
                 var plclinkInfos = await Task.WhenAll(task);
@@ -221,7 +216,7 @@ namespace Guga.BlazorApp
                 foreach (var plclink in result)
                 {
                     #region 获取链路信号
-                    var d_signals_dic = await _redisHelper.HashGetAsync(_redisKeyOptions._PLCLinksSignals(plclink.plclinkInfo.PLCLinkId));
+                    var d_signals_dic = await _collectorRedisService._redisHelper.HashGetAsync(_redisKeyOptions._PLCLinksSignals(plclink.plclinkInfo.PLCLinkId));
 
                     if (d_signals_dic.Any())
                     {
@@ -266,9 +261,12 @@ namespace Guga.BlazorApp
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            _signalCollector.Stop();
+            Console.WriteLine("停止主服务竞选");
+            _cts?.Cancel(); // 通知停止
+
             // 可选：处理停止逻辑
             return Task.CompletedTask;
         }
+       
     }
 }

@@ -14,7 +14,7 @@ namespace Guga.Collector.Interfaces
         /// 连接链路
         /// </summary>
         /// <returns></returns>
-        Task<Result> ConnectAsync(int retryCount, int delayMilliseconds);
+        Task<Result> ConnectAsync(int retryCount, int delayMilliseconds,CancellationToken cancellationToken);
         /// <summary>
         /// 是否已连接
         /// </summary>

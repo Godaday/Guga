@@ -9,6 +9,7 @@ using Guga.Redis.ConfigModels;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
+using System.Threading;
 
 namespace Guga.Collector.Services
 {
@@ -24,6 +25,9 @@ namespace Guga.Collector.Services
         public bool IsRunning {
         get{ return Running; }
         }
+        public bool IsInit { get; private set; } = false;
+
+        public bool IsUserStop { get; set; } = false;
 
         private readonly RedisKeyOptions _redisKeyOptions;
         private readonly IRedisHelper _redisHelper;
@@ -56,7 +60,8 @@ namespace Guga.Collector.Services
         /// <param name="plclinks"></param>
         /// <param name="semaphoreSlim_MaxCount"></param>
         /// <returns></returns>
-        public async Task<ISignalCollector> Init(GetPlcLinksDelegate getPlcLinksDelegate, int semaphoreSlim_MaxCount=10)
+        public async Task<ISignalCollector> Init(GetPlcLinksDelegate getPlcLinksDelegate, CancellationToken cancellationToken,int semaphoreSlim_MaxCount=10
+            )
         {
             _getPlcLinks = getPlcLinksDelegate;
             List<PLCLink> plclinks= await getPlcLinksDelegate.Invoke() ?? throw new ArgumentNullException(nameof(getPlcLinksDelegate));
@@ -64,12 +69,13 @@ namespace Guga.Collector.Services
            _maxConcurrency = semaphoreSlim_MaxCount;
                Semaphore = new SemaphoreSlim(semaphoreSlim_MaxCount);
            
-            _connectionManager.Init(plclinks);
+            _connectionManager.Init(plclinks, cancellationToken);
             //初始化定时器
             foreach (var item in plclinks)
             {
-                AddTimer(item);
+                AddTimer(item, cancellationToken);
             }
+            IsInit = true;
             return this;
 
 
@@ -77,10 +83,10 @@ namespace Guga.Collector.Services
         /// <summary>
         /// 启动所有定时器
         /// </summary>
-        public async Task Start()
+        public async Task Start(CancellationToken cancellationToken)
         {
             Running = true;
-            await  _connectionManager.ConnectionAllAsync();
+            await  _connectionManager.ConnectionAllAsync(cancellationToken);
             foreach (var item in _timers)
             {
                
@@ -107,30 +113,31 @@ namespace Guga.Collector.Services
             return 200;
         }
         // 停止所有定时器
-        public  async Task Stop()
+        public async Task Stop(bool isUserStop = false)
         {
             foreach (var timer in _timers)
             {
                 // 停止每个定时器
                 timer.Value.Change(Timeout.Infinite, Timeout.Infinite);
-               
+
             }
             Running = false;
+            IsUserStop = isUserStop;
 #if DEBUG
             Console.WriteLine("定时器已关闭");
 #endif
         }
 
-        public async Task ReStart() {
+        public async Task ReStart(CancellationToken cancellationToken) {
            await  Stop();
             _timers.Clear();
           await  ReLoadLinkAndSignal();
-           await  Init(this._getPlcLinks, _maxConcurrency);
+           await  Init(this._getPlcLinks, cancellationToken, _maxConcurrency);
 
-           await Start();
+           await Start(cancellationToken);
           
         }
-        private void AddTimer(PLCLink pLCLink)
+        private void AddTimer(PLCLink pLCLink, CancellationToken cancellationToken)
         {
             var linkSignals=pLCLink.GetSubscribedSignals();
              var signalGropByCycle= linkSignals
@@ -143,7 +150,7 @@ namespace Guga.Collector.Services
                 {
                     _timers.Add(timerKey,
                         new Timer(async _ =>
-                        await CollectSignalsWithConcurrencyLimit( pLCLink,c.Value),
+                        await CollectSignalsWithConcurrencyLimit( pLCLink,c.Value, cancellationToken),
                         null,
                         Timeout.Infinite, Timeout.Infinite
                         //TimeSpan.Zero,
@@ -195,7 +202,8 @@ namespace Guga.Collector.Services
         /// <param name="plclinks">链路列表</param>
         /// <param name="signals">信号列表</param>
         /// <returns></returns>
-        public async Task CollectSignalsWithConcurrencyLimit(PLCLink pLCLink,List<IPlcSignal> _plcSignals)
+        public async Task CollectSignalsWithConcurrencyLimit(PLCLink pLCLink,List<IPlcSignal> _plcSignals,
+            CancellationToken cancellationToken)
         {
             // 获取链路的连接
             var connection = _connectionManager.GetConnection(pLCLink);
@@ -219,7 +227,7 @@ namespace Guga.Collector.Services
             }
             else
             {
-              await  _connectionManager.ConnectionAllAsync();
+              await  _connectionManager.ConnectionAllAsync(cancellationToken);
             }
             
 

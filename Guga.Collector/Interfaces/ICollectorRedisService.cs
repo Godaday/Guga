@@ -1,4 +1,5 @@
-﻿using Guga.Core.Models;
+﻿using ColinChang.RedisHelper;
+using Guga.Core.Models;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -10,6 +11,7 @@ namespace Guga.Collector.Interfaces
 {
     public interface ICollectorRedisService
     {
+        public  IRedisHelper _redisHelper { get; }//redis 操作
         public long _CurrentWriteQueueLength { get;  }//队列长度
         Task<T> DequeueAsync<T>(string key) where T : class;
         Task<SignalWriteModel> DequeueSignalWriteDataAsync();
@@ -24,7 +26,13 @@ namespace Guga.Collector.Interfaces
         /// <param name="signalWriteModel"></param>
         /// <returns>入队后队列长度</returns>
          Task<ConcurrentDictionary<string, SignalValueModel>> SearchSignalValueAsync(List<string> keys);
+        /// <summary>
+        /// 获取S7机架槽位配置
+        /// </summary>
+        /// <returns></returns>
         Task<List<S7RackSlotConfig>> S7RackSlotConfigs();
-        }
+        Task<bool> RetryRegisterServiceAsync(string serviceCode, TimeSpan timeSpan);
+        Task<bool> IsCurrentServiceRegisteredAsync(string serviceCode);
+    }
 
 }

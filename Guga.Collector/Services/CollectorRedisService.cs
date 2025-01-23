@@ -4,21 +4,16 @@ using Guga.Core.Models;
 using Guga.Redis.ConfigModels;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Guga.Collector.Services
 {
-   
+
 
     public class CollectorRedisService : ICollectorRedisService
     {
         private readonly RedisKeyOptions _redisKeyOptions;//Redis key
-        private readonly IRedisHelper _redisHelper;//redis 操作
+        public IRedisHelper _redisHelper { get; private set; }//redis 操作
         public  long _CurrentWriteQueueLength { get; private set; } = 0;
         /// <summary>
         /// cotr
@@ -146,8 +141,93 @@ namespace Guga.Collector.Services
             var redis_S7RackSlot = await _redisHelper.StringGetAsync<List<S7RackSlotConfig>>(s7RackSlotredisKey);
             return redis_S7RackSlot;
         }
-       
-        #endregion
 
+        #endregion
+        #region 服务注册
+
+        /// <summary>
+        /// 查询当前是否有注册的服务
+        /// </summary>
+        private async Task<bool> HasRegisteredServicesAsync()
+        {
+            var services = await _redisHelper.SetMembersAsync<string>(_redisKeyOptions._Server_Register);
+            if (services == null)
+            {
+                return false;
+            }
+            return services.Any();
+        }
+
+        /// <summary>
+        /// 检查当前服务是否已注册
+        /// </summary>
+        public async Task<bool> IsCurrentServiceRegisteredAsync(string serviceCode)
+        {
+            return await _redisHelper.SetContainsAsync(_redisKeyOptions._Server_Register, serviceCode);
+        }
+
+
+
+        /// <summary>
+        /// 注册当前服务
+        /// </summary>
+        private async Task<bool> RegisterServiceAsync(string serviceCode, TimeSpan timeSpan)
+        {
+
+            var addResult = await _redisHelper.SetAddAsync(_redisKeyOptions._Server_Register, serviceCode);
+
+            // 如果添加成功，设置过期时间
+            if (addResult)
+            {
+                await _redisHelper.KeyExpireAsync(_redisKeyOptions._Server_Register, timeSpan);
+            }
+
+            return addResult;
+
+        }
+
+        /// <summary>
+        /// 续约
+        /// </summary>
+        /// <param name="timeSpan"></param>
+        /// <returns></returns>
+        private async Task<bool> ServiceRenewalAsync(TimeSpan timeSpan)
+        {
+
+           
+             return    await _redisHelper.KeyExpireAsync(_redisKeyOptions._Server_Register, timeSpan);
+
+          
+
+        }
+
+        /// <summary>
+        ///尝试注册服务
+        /// </summary>
+        /// <param name="serviceCode"></param>
+        /// <returns></returns>
+        public async Task<bool> RetryRegisterServiceAsync(string serviceCode, TimeSpan timeSpan)
+        {
+            var result = false;
+            //查询是否有注册的服务
+            var isRegistered = await HasRegisteredServicesAsync();
+            //当前服务是否已注册
+            var isCurrentServiceRegistered = await IsCurrentServiceRegisteredAsync(serviceCode);
+
+            if (!isRegistered )
+            {
+                //注册当前服务
+                result = await RegisterServiceAsync(serviceCode, timeSpan);
+                Console.WriteLine($"[{serviceCode}] 成为主服务");
+            }
+            if (isCurrentServiceRegistered)
+            {
+                result= await ServiceRenewalAsync(timeSpan);
+                Console.WriteLine($"[{serviceCode}] 续约成功。");
+            }
+            return result;
+        }
+
+        #endregion
     }
 }
