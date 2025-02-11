@@ -164,7 +164,7 @@ namespace Guga.Collector.Services
 
             if (!_signalWriter.IsInit)
             {
-                _signalWriter.Init(2000, 50, cancellationToken);
+                _signalWriter.Init(_serverOptions.WriteBatchInterval, _serverOptions.WriteBatchSize, cancellationToken);
                 await _signalWriter.Start(cancellationToken);
             }
             else

@@ -85,17 +85,21 @@ namespace Guga.Collector.Services
         /// </summary>
         public async Task Start(CancellationToken cancellationToken)
         {
-            Running = true;
-            await  _connectionManager.ConnectionAllAsync(cancellationToken);
-            foreach (var item in _timers)
+            if (!IsRunning)
             {
-               
-                item.Value.Change(0, GetTimerKey(item.Key) );//启动定时器
-            }
-       
+                Running = true;
+                await _connectionManager.ConnectionAllAsync(cancellationToken);
+                foreach (var item in _timers)
+                {
+
+                    item.Value.Change(0, GetTimerKey(item.Key));//启动定时器
+                }
+
 #if DEBUG
-            Console.WriteLine("定时器已启动");
+                Console.WriteLine("定时器已启动");
 #endif
+            }
+
 
         }
         /// <summary>
@@ -115,26 +119,34 @@ namespace Guga.Collector.Services
         // 停止所有定时器
         public async Task Stop(bool isUserStop = false)
         {
-            foreach (var timer in _timers)
+            if (IsRunning)
             {
-                // 停止每个定时器
-                timer.Value.Change(Timeout.Infinite, Timeout.Infinite);
+                foreach (var timer in _timers)
+                {
+                    // 停止每个定时器
+                    timer.Value.Change(Timeout.Infinite, Timeout.Infinite);
 
-            }
-            Running = false;
-            IsUserStop = isUserStop;
+                }
+                Running = false;
+                IsUserStop = isUserStop;
 #if DEBUG
-            Console.WriteLine("定时器已关闭");
+                Console.WriteLine("定时器已关闭");
 #endif
+            }
         }
 
         public async Task ReStart(CancellationToken cancellationToken) {
-           await  Stop();
-            _timers.Clear();
-          await  ReLoadLinkAndSignal();
-           await  Init(this._getPlcLinks, cancellationToken, _maxConcurrency);
+            //
+            if (IsRunning)
+            {
+                await Stop();
+                _timers.Clear();
+                await ReLoadLinkAndSignal();
+                await Init(this._getPlcLinks, cancellationToken, _maxConcurrency);
 
-           await Start(cancellationToken);
+                await Start(cancellationToken);
+            }
+        
           
         }
         private void AddTimer(PLCLink pLCLink, CancellationToken cancellationToken)

@@ -27,7 +27,7 @@ namespace Guga.Collector.Services
 
         public SignalWriter Init(int writeInterval, int maxProcessCount,CancellationToken cancellationToken)
         {
-            _MaxProcessCount = maxProcessCount - 1;
+            _MaxProcessCount = maxProcessCount;
             _WriteInterval = writeInterval;
             _timer = new Timer(async _ => await WriteSiganlForTimerAsync(cancellationToken), null, Timeout.Infinite, Timeout.Infinite);
 #if DEBUG

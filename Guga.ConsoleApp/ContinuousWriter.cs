@@ -1,5 +1,5 @@
 ﻿using Guga.Collector;
-using Guga.Collector.Guga.Collector;
+
 using Guga.Core.Enums;
 using Guga.Core.Interfaces;
 using Guga.Core.Models;

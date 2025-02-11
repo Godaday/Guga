@@ -23,5 +23,11 @@ namespace Guga.Collector.ConfigModel
 
         [Required(ErrorMessage = "请配置服务续锁时间")]
         public int RenewalLockSeconds { get; set; }
+
+        [Required(ErrorMessage = "请配置信号写入批次间隔")]
+        public int WriteBatchInterval { get; set; }
+
+        [Required(ErrorMessage = "请配置信号写入批次大小")]
+        public int WriteBatchSize { get; set; }
     }
 }
