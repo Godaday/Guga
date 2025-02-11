@@ -8,6 +8,7 @@ using Guga.Core.PlcSignals;
 using Guga.Redis.ConfigModels;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using PLCCollect.Collector.Interfaces;
 using System.Collections.Concurrent;
 using System.Threading;
 
@@ -35,14 +36,17 @@ namespace Guga.Collector.Services
         private readonly IPLCLinkManager _plclinkManager;
 
         private  GetPlcLinksDelegate? _getPlcLinks;//获取链路委托
+        private readonly IMasterServeStatus _masterServeStatus;
         public SignalCollector(IPlcConnectionManager connectionManager, IOptions<RedisKeyOptions> redisKeyOptions,
-            IRedisHelper redisHelper, IPLCLinkFactory pLCLinkFactory, IPLCLinkManager plclinkManager)
+            IRedisHelper redisHelper, IPLCLinkFactory pLCLinkFactory, IPLCLinkManager plclinkManager,
+            IMasterServeStatus masterServeStatus)
         {
             _connectionManager = connectionManager;
             _redisKeyOptions = redisKeyOptions.Value;
             _redisHelper = redisHelper;
             _pLCLinkFactory = pLCLinkFactory;
             _plclinkManager = plclinkManager;
+            _masterServeStatus = masterServeStatus;
         }
         public async Task ReLoadLinkAndSignal()
         {
@@ -85,7 +89,7 @@ namespace Guga.Collector.Services
         /// </summary>
         public async Task Start(CancellationToken cancellationToken)
         {
-            if (!IsRunning)
+            if (!IsRunning&& _masterServeStatus.IsMaster)
             {
                 Running = true;
                 await _connectionManager.ConnectionAllAsync(cancellationToken);
@@ -119,7 +123,7 @@ namespace Guga.Collector.Services
         // 停止所有定时器
         public async Task Stop(bool isUserStop = false)
         {
-            if (IsRunning)
+            if (IsRunning && _masterServeStatus.IsMaster)
             {
                 foreach (var timer in _timers)
                 {
@@ -137,7 +141,7 @@ namespace Guga.Collector.Services
 
         public async Task ReStart(CancellationToken cancellationToken) {
             //
-            if (IsRunning)
+            if (IsRunning && _masterServeStatus.IsMaster)
             {
                 await Stop();
                 _timers.Clear();

@@ -8,6 +8,7 @@ using Guga.Core.PlcSignals;
 using Guga.Redis.ConfigModels;
 using Newtonsoft.Json;
 using ColinChang.RedisHelper;
+using PLCCollect.Collector.Interfaces;
 
 namespace Guga.Collector.Services
 {
@@ -28,13 +29,14 @@ namespace Guga.Collector.Services
  
         private readonly RedisKeyOptions _redisKeyOptions;
         private readonly IPLCLinkFactory _pLCLinkFactory;
+        private readonly IMasterServeStatus _masterServeStatus;
         #endregion
         #region Constructor function
         public MasterElectionService(IOptions<ServerOptions> serverOptions, ICollectorRedisService collectorRedisService,
             ISignalCollector signalCollector,
             ISignalWriter signalWriter, IRedisHelper redisHelper,
             IOptions<RedisKeyOptions> redisKeyOptions,
-            IPLCLinkFactory pLCLinkFactory)
+            IPLCLinkFactory pLCLinkFactory, IMasterServeStatus masterServeStatus)
         {
             _serverOptions = serverOptions.Value;
             _collectorRedisService = collectorRedisService;
@@ -43,6 +45,7 @@ namespace Guga.Collector.Services
          
             _redisKeyOptions = redisKeyOptions.Value;
             _pLCLinkFactory = pLCLinkFactory;
+            _masterServeStatus = masterServeStatus;
 
         }
         public void StartMasterElection(CancellationToken cancellationToken)
@@ -69,6 +72,7 @@ namespace Guga.Collector.Services
                     else
                     {
                         await StopService(cancellationToken);
+                        _masterServeStatus.IsMaster = false;
                     }
 
                     // 等待一段时间后重新竞选
@@ -106,12 +110,14 @@ namespace Guga.Collector.Services
                         if (isRenewalSeccess)
                         {
                             result = true;
+                            _masterServeStatus.IsMaster = true;
                             await StartService(cancellationToken);
                             // 执行主服务逻辑
                             Console.WriteLine($"[{_serverOptions.ServerCode}] 正在作为主服务运行...");
                         }
                         else
                         {
+                            _masterServeStatus.IsMaster = false;
                             await StopService(cancellationToken);
                             Console.WriteLine($"[{_serverOptions.ServerCode}] 续约失败， 已失去主服务身份");
 

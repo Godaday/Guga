@@ -1,5 +1,6 @@
 ﻿using Guga.Collector.Interfaces;
 using Guga.Core.Interfaces;
+using PLCCollect.Collector.Interfaces;
 
 namespace Guga.Collector.Services
 {
@@ -17,12 +18,14 @@ namespace Guga.Collector.Services
         public bool IsRunning { get; private set; } = false;
         public bool IsInit { get; private set; } = false;
         public bool IsUserStop { get; set; } = false;
+        private readonly IMasterServeStatus _masterServeStatus;
         public SignalWriter(IPlcConnectionManager plcConnectionManager, IPLCLinkManager plclinkManager,
-            ICollectorRedisService collectorRedisService)
+            ICollectorRedisService collectorRedisService, IMasterServeStatus masterServeStatus)
         {
             _connectionManager = plcConnectionManager;
             _plclinkManager = plclinkManager;
             _collectorRedisService = collectorRedisService;
+            _masterServeStatus = masterServeStatus;
         }
 
         public SignalWriter Init(int writeInterval, int maxProcessCount,CancellationToken cancellationToken)
@@ -114,35 +117,43 @@ namespace Guga.Collector.Services
         /// </summary>
         public async Task Start( CancellationToken cancellation )
         {
-            await Task.Run(() =>
+            if (!IsRunning && _masterServeStatus.IsMaster)
+            {
+                await Task.Run(() =>
             {
                 _timer?.Change(0, _WriteInterval);
-                IsRunning=true;
+                IsRunning = true;
             });
-
+            }
         }
         /// <summary>
         /// 停止写入
         /// </summary>
         public async Task Stop(bool isUserStop = false)
         {
-            await Task.Run(() =>
+            if (IsRunning && _masterServeStatus.IsMaster)
+            {
+                await Task.Run(() =>
             {
                 _timer?.Change(Timeout.Infinite, Timeout.Infinite);//启动定时器
                 IsRunning = false;
             });
-            IsUserStop = isUserStop;
+                IsUserStop = isUserStop;
+            }
         }
         /// <summary>
         /// 重启
         /// </summary>
         public async Task ReStart(CancellationToken cancellationToken)
         {
-            await Task.Run(async () =>
+            if (IsRunning && _masterServeStatus.IsMaster)
+            {
+                await Task.Run(async () =>
             {
                 Init(_WriteInterval, _MaxProcessCount, cancellationToken);
                 await Start(cancellationToken);
             });
+            }
         }
     }
 }

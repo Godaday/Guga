@@ -6,6 +6,8 @@ using Guga.Collector.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using PLCCollect.Collector.Interfaces;
+using PLCCollect.Collector.Services;
 
 namespace Guga.Collector
 {
@@ -31,6 +33,7 @@ namespace Guga.Collector
             //模拟信号写入产生服务
             services.AddSingleton<ISimulatedSignalWriter, SimulatedSignalWriter>();
             services.AddSingleton<IMasterElectionService, MasterElectionService>();
+            services.AddSingleton<IMasterServeStatus, MasterServeStatus>();
             return services;
         }
     }
