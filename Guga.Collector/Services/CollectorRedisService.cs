@@ -36,8 +36,9 @@ namespace Guga.Collector.Services
         /// <returns>入队后队列长度</returns>
         public async Task<long> EnqueueAsyncSignalWriteDataAsync(SignalWriteModel signalWriteModel)
         {
-            return await EnqueueAsync<SignalWriteModel>(_redisKeyOptions._Signals_Write, signalWriteModel);
-
+            var enqueLenth = await EnqueueAsync<SignalWriteModel>(_redisKeyOptions._Signals_Write, signalWriteModel);
+            _CurrentWriteQueueLength = enqueLenth;
+            return enqueLenth;
         }
         /// <summary>
         /// 信号值读取

@@ -1,4 +1,5 @@
-﻿using Guga.Core.Interfaces;
+﻿using Guga.Core.Enums;
+using Guga.Core.Interfaces;
 using Guga.Core.Models;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,10 @@ namespace Guga.Core.PlcSignals
     /// </summary>
     public class ModbusSignal : IPlcSignal
     {
-
+        /// <summary>
+        /// 信号状态
+        /// </summary>
+       public SignalStatus SignalStatus_ { get; set; }
         /// <summary>
         /// 读取周期，以毫秒为单位，例如：1000ms
         /// </summary>
@@ -65,7 +69,7 @@ namespace Guga.Core.PlcSignals
         /// </summary>
         /// <param name="dateTime"></param>
         /// <returns></returns>
-        public string GetSignalStoreValue(DateTime? dateTime) {
+        public string GetSignalStoreValue() {
             return null;
         }
     }

@@ -58,51 +58,51 @@ namespace Guga.BlazorApp
             var configuration = _serviceProvider.GetRequiredService<IConfiguration>();
 
 
-            var plclinkFactory = _serviceProvider.GetRequiredService<IPLCLinkFactory>();
-            //创建链路
-            PLCLinkInfo plclinkInfo = new  PLCLinkInfo{
-                PLCLinkId = "DV-2",
-                PLCLinkName = "西门子链路",
-                PLCLinkCode = "WR001",
-                PLCLinkType_ = PLCLinkType.Universal,
-                Ip = "127.0.0.1",
-                ProtocolType_ = ProtocolType.S7,
-                S7CPUType_ = S7CPUType.S71200,
-                rack = 0,
-                slot = 1,
-            };
-            await _collectorRedisService._redisHelper.StringSetAsync(_redisKeyOptions._PLCLinksIDs, new List<string>() { "DV-2" });
-            await _collectorRedisService._redisHelper.StringSetAsync(_redisKeyOptions._PLCLinkInfo(plclinkInfo.PLCLinkId), plclinkInfo);
-            //创建信号
-            var s7Signals = CreateS7TestSignals();
+        //    var plclinkFactory = _serviceProvider.GetRequiredService<IPLCLinkFactory>();
+        //    //创建链路
+        //    PLCLinkInfo plclinkInfo = new  PLCLinkInfo{
+        //        PLCLinkId = "DV-2",
+        //        PLCLinkName = "西门子链路",
+        //        PLCLinkCode = "WR001",
+        //        PLCLinkType_ = PLCLinkType.Universal,
+        //        Ip = "127.0.0.1",
+        //        ProtocolType_ = ProtocolType.S7,
+        //        S7CPUType_ = S7CPUType.S71200,
+        //        rack = 0,
+        //        slot = 1,
+        //    };
+        //    await _collectorRedisService._redisHelper.StringSetAsync(_redisKeyOptions._PLCLinksIDs, new List<string>() { "DV-2" });
+        //    await _collectorRedisService._redisHelper.StringSetAsync(_redisKeyOptions._PLCLinkInfo(plclinkInfo.PLCLinkId), plclinkInfo);
+        //    //创建信号
+        //    var s7Signals = CreateS7TestSignals();
             
-           var  cc = s7Signals.ToDictionary(
-            signal => signal.SignalName,
-            signal => JsonConvert.SerializeObject(signal)
-        );
-            ConcurrentDictionary<string, string> entries = new ConcurrentDictionary<string, string>();
-            foreach (var signal in s7Signals)
-            {
-                entries.TryAdd(signal.SignalName, JsonConvert.SerializeObject(signal));
+        //   var  cc = s7Signals.ToDictionary(
+        //    signal => signal.SignalName,
+        //    signal => JsonConvert.SerializeObject(signal)
+        //);
+        //    ConcurrentDictionary<string, string> entries = new ConcurrentDictionary<string, string>();
+        //    foreach (var signal in s7Signals)
+        //    {
+        //        entries.TryAdd(signal.SignalName, JsonConvert.SerializeObject(signal));
 
-            } 
-              await _collectorRedisService._redisHelper.HashSetAsync(_redisKeyOptions._PLCLinksSignals(plclinkInfo.PLCLinkId), entries);
+        //    } 
+        //      await _collectorRedisService._redisHelper.HashSetAsync(_redisKeyOptions._PLCLinksSignals(plclinkInfo.PLCLinkId), entries);
 
 
 
-            //Check 默认配置是否存在
-            #region 从 Redis 加载西门子链路不同型号机架号、插槽数据
-            var s7RackSlotredisKey = _redisKeyOptions._S7RackSlot;
-            var redis_S7RackSlot = await _collectorRedisService._redisHelper.StringGetAsync<List<S7RackSlotConfig>>(s7RackSlotredisKey);
-            if (redis_S7RackSlot == null || redis_S7RackSlot.Count == 0)
-            {
-                // 从配置文件加载
+        //    //Check 默认配置是否存在
+        //    #region 从 Redis 加载西门子链路不同型号机架号、插槽数据
+        //    var s7RackSlotredisKey = _redisKeyOptions._S7RackSlot;
+        //    var redis_S7RackSlot = await _collectorRedisService._redisHelper.StringGetAsync<List<S7RackSlotConfig>>(s7RackSlotredisKey);
+        //    if (redis_S7RackSlot == null || redis_S7RackSlot.Count == 0)
+        //    {
+        //        // 从配置文件加载
 
-                var appsetting_S7RackSlot = configuration.GetSection(_redisKeyOptions.S7RackSlotTemple_key).Get<List<S7RackSlotConfig>>();
-                await _collectorRedisService._redisHelper.StringSetAsync(s7RackSlotredisKey, appsetting_S7RackSlot);
-                // await _redisHelper.HashSetAsync(s7RackSlotredisKey, appsetting_S7RackSlot);
-            }
-            #endregion
+        //        var appsetting_S7RackSlot = configuration.GetSection(_redisKeyOptions.S7RackSlotTemple_key).Get<List<S7RackSlotConfig>>();
+        //        await _collectorRedisService._redisHelper.StringSetAsync(s7RackSlotredisKey, appsetting_S7RackSlot);
+        //        // await _redisHelper.HashSetAsync(s7RackSlotredisKey, appsetting_S7RackSlot);
+        //    }
+        //    #endregion
              _masterElectionService.StartMasterElection(_cts.Token);
 
         }

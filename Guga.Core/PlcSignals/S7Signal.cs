@@ -1,4 +1,5 @@
-﻿using Guga.Core.Interfaces;
+﻿using Guga.Core.Enums;
+using Guga.Core.Interfaces;
 using Guga.Core.Models;
 using Newtonsoft.Json;
 using S7.Net;
@@ -17,6 +18,10 @@ namespace Guga.Core.PlcSignals
     /// </summary>
     public class S7Signal : IPlcSignal
     {
+        /// <summary>
+        /// 信号状态
+        /// </summary>
+        public SignalStatus SignalStatus_ { get; set; }
         public string SignalName { get; set; }
         public string Address { get; set; }
         public object? Value { get; set; }
@@ -30,6 +35,10 @@ namespace Guga.Core.PlcSignals
 
         public int ReadCycle { get; set; } = 200;
         public DateTime CollectTime { get; set; }
+        /// <summary>
+        /// 消息
+        /// </summary>
+        public string ErrorMessage { get; set; }
 
         public S7Signal(string signalName, string address,object value=null)
         {
@@ -74,17 +83,16 @@ namespace Guga.Core.PlcSignals
         /// </summary>
         /// <param name="dateTime"></param>
         /// <returns></returns>
-        public string GetSignalStoreValue(DateTime? dateTime ) {
-            if (dateTime == null)
-            {
-                dateTime=DateTime.Now;
-            }
+        public string GetSignalStoreValue() {
+           
             var t = new SignalValueModel() {
                 LinkCode =this.PLCLink.plclinkInfo.PLCLinkCode,
                 Address =this.Address,
                 Value = this.Value,
-                CollectorTime = dateTime
-                
+                CollectorTime = CollectTime,
+                Status=SignalStatus_,
+                ErrorMessage= ErrorMessage
+
             };
           return  JsonConvert.SerializeObject(t);
         }

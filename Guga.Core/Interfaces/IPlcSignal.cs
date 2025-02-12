@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Guga.Core.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -29,6 +30,10 @@ namespace Guga.Core.Interfaces
         string Address { get; set; }
 
          object GetValue();
+        /// <summary>
+        /// 信号状态
+        /// </summary>
+        SignalStatus SignalStatus_ { get; set; }
 
         void SetValue(object value,bool updateCollectTime =true);
         /// <summary>
@@ -46,7 +51,7 @@ namespace Guga.Core.Interfaces
         /// </summary>
         /// <param name="dateTime"></param>
         /// <returns></returns>
-        public string GetSignalStoreValue(DateTime? dateTime);
+        public string GetSignalStoreValue();
     }
 
     

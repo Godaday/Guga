@@ -262,6 +262,7 @@ namespace Guga.Collector.Services
                                 }
                                 if (plcSignal != null)
                                 {
+                                    
                                     plcSignal.PLCLink = plclink;
                                     plcSignals.Add(plcSignal);
                                 }

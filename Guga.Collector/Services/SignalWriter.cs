@@ -91,7 +91,7 @@ namespace Guga.Collector.Services
                                 {
                                     await _collectorRedisService.DequeueSignalWriteDataAsync();//出队
 
-                                    await _collectorRedisService.EnqueueAsyncSignalWriteDataAsync(s);//不成功 重新入队
+                                     await _collectorRedisService.EnqueueAsyncSignalWriteDataAsync(s);//不成功 重新入队
                                 }
 
                             }

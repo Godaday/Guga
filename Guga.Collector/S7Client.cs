@@ -1,5 +1,6 @@
 ﻿using Guga.Collector.Interfaces;
 using Guga.Collector.Models;
+using Guga.Core.Enums;
 using Guga.Core.Interfaces;
 using Guga.Core.PlcSignals;
 using S7.Net;
@@ -216,28 +217,43 @@ namespace Guga.Collector
                 int batchSize = Math.Min((maxRequestSize - baseSize) / itemSize, dataItems.Count - i);
                 var batch = dataItems.Skip(i).Take(batchSize).ToList();
                 i += batchSize;
+                var readError = "";
+                try
+                {
+                    // 读取当前批次数据
+                    await _plc.ReadMultipleVarsAsync(batch);
+                }
+                catch (Exception ex)
+                {
 
-                // 读取当前批次数据
-                await _plc.ReadMultipleVarsAsync(batch);
+                    // throw ex;
+                    readError = ex.Message;
+                }
 
                 // 更新 S7Signal 的值
                 for (int j = 0; j < batch.Count; j++)
                 {
-                    if (signalList[i - batchSize + j].S7VarType == VarType.S7WString)
-                    {
-                        signalList[i - batchSize + j].SetValue(batch[j].Value);
+                   
+                        var currentSignal = signalList[i - batchSize + j];
+                        if (batch[j].Value.GetType() == typeof(object))
+                        {
+                            currentSignal.SignalStatus_ = SignalStatus.Abnormal;
+                        currentSignal.SetValue("-");
+                        currentSignal.ErrorMessage = readError;
+                    }
+                        else
+                        {
+                            currentSignal.SignalStatus_ = SignalStatus.Normal;
+                        currentSignal.SetValue(batch[j].Value);
+                    }
+                       
                         //if (batch[j].Value is ushort[] ushortArray)
                         //{
                         //   byte[] cc=  ushortArray.SelectMany(BitConverter.GetBytes).ToArray();
                         //   string ddd = S7WString.FromByteArray(cc);
                         //    signalList[i - batchSize + j].SetValue(ddd);
                         //}
-                        
-                    }
-                    else
-                    {
-                        signalList[i - batchSize + j].SetValue(batch[j].Value);
-                    }
+                  
                   
                    
                 }

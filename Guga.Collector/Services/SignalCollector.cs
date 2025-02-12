@@ -178,40 +178,6 @@ namespace Guga.Collector.Services
             
         }
 
-        public void AddPLCLink(PLCLink  link)
-        {
-            //lock (_lock_)
-            //{
-            //    //没有所属分组则创建个新分组
-            //    if (!groups_.ContainsKey(link.plclinkInfo.ReadCycle))
-            //    {
-            //        groups_[link.plclinkInfo.ReadCycle] = new List<PLCLink>() { link };
-            //    }
-            //    else
-            //    {
-            //        groups_[link.plclinkInfo.ReadCycle].Add(link);
-            //    }
-
-            //    Console.WriteLine($"采集器添加链路:{link.plclinkInfo.PLCLinkName}");
-
-            //}
-        }
-        public void RemovePLCLink(PLCLink  link)
-        {
-            //lock (_lock_)
-            //{
-               
-            //    if (groups_.ContainsKey(link.plclinkInfo.ReadCycle))
-            //    {
-            //        groups_[link.plclinkInfo.ReadCycle].Remove(link); ;
-            //    }
-
-            //    Console.WriteLine($"采集器移除链路:{link.plclinkInfo.PLCLinkName}");
-
-            //}
-
-
-        }
         /// <summary>
         /// 异步并发采集多个链路的信号
         /// </summary>

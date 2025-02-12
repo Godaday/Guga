@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Guga.Core.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -24,8 +25,10 @@ namespace Guga.Core.Models
         /// <summary>
         /// 状态
         /// </summary>
-        public int Status { get; set; } = 0;
+        public SignalStatus Status { get; set; }= SignalStatus.Normal;
 
-      
+        public string? ErrorMessage { get; set; }
+
+
     }
 }

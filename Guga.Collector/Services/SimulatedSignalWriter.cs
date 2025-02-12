@@ -61,7 +61,7 @@ namespace Guga.Collector.Services
 
             SimulatedSignalWriteState = false;
             _cancellationTokenSource?.Cancel();
-            _cancellationTokenSource?.Dispose();
+         
             _cancellationTokenSource = null;
 
             Console.WriteLine("Simulated signal writer has been stopped.");
