@@ -235,7 +235,7 @@ namespace Guga.Collector.Services
                     ConcurrentDictionary<string, string> entries = new ConcurrentDictionary<string, string>();
                     foreach (var signal in signals)
                     {
-                        entries.TryAdd($"{signal.PLCLink.plclinkInfo.PLCLinkCode}:{signal.Address}", signal.GetSignalStoreValue(null));
+                        entries.TryAdd($"{signal.PLCLink.plclinkInfo.PLCLinkCode}:{signal.Address}", signal.GetSignalStoreValue());
                     }
                     await _redisHelper.HashSetAsync(_redisKeyOptions._Signal_Values, entries);
                     //plclink.UpdateSignals(signalResult.Data);
