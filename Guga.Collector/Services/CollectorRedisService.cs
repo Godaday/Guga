@@ -82,7 +82,11 @@ namespace Guga.Collector.Services
         /// <returns></returns>
         public async Task<IEnumerable<SignalWriteModel>> PeekSignalWriteDataAsync(long start = 0L, long stop = 0L)
         {
-            return await PeekRangeAsync<SignalWriteModel>(_redisKeyOptions._Signals_Write, start, stop);
+            if (_CurrentWriteQueueLength > 0)
+            {
+                return await PeekRangeAsync<SignalWriteModel>(_redisKeyOptions._Signals_Write, start, stop);
+            }
+            return null;
            
         }
         #endregion
