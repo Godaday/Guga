@@ -29,5 +29,12 @@ namespace Guga.Collector.ConfigModel
 
         [Required(ErrorMessage = "请配置信号写入批次大小")]
         public int WriteBatchSize { get; set; }
+
+
+        [Required(ErrorMessage = "请配置信号失效权重")]
+        public int SignalInvalidWeight { get; set; }
+
+        [Required(ErrorMessage = "请配置信号失效检查延迟")]
+        public int SignalInvalidCheckDelay { get; set; }
     }
 }

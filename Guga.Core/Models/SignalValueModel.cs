@@ -28,7 +28,10 @@ namespace Guga.Core.Models
         public SignalStatus Status { get; set; }= SignalStatus.Normal;
 
         public string? ErrorMessage { get; set; }
-
+        /// <summary>
+        /// 采集周期（用于计算失效）
+        /// </summary>
+        public int? ReadCycle { get; set; }
 
     }
 }

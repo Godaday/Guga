@@ -4,7 +4,7 @@
 @using Guga.Core.Models
 @inject ICollectorRedisService _collectorRedisService;
 @inject ISignalWriter _signalWriterService
-@inject ISnackbar Snackbar
+
 @inject ISimulatedSignalWriter _simulatedSignalWriter
 @inject ISnackbar Snackbar
 
@@ -33,11 +33,7 @@
 
         </MudButtonGroup>
     <MudSpacer />
-    <MudChip T="string" Icon="@Icons.Material.Filled.Grain"
-             Label="true" Color="Color.Default">
-        Queue Size: <MudDivider Vertical="true" FlexItem="true" />@_collectorRedisService._CurrentWriteQueueLength
-    </MudChip>
-   
+
 
 </MudToolBar>
 
@@ -45,17 +41,6 @@
 <MudToolBar Class="d-flex flex-nowrap gap-4 overflow-auto">
 
   
-        <MudNumericField @bind-Value="_signalWriterService._MaxProcessCount"
-                         Min="5" Step="100" Label="模拟单次写入数量" Variant="Variant.Text" AdornmentText="n" />
-
-
-  
-
-
-
-    
-        <MudNumericField Class="mud-input-root" @bind-Value="_simulatedSignalWriter.SimulatedSignalWriteInterval"
-                         Min="50" Step="100" Label="模拟产生间隔" Variant="Variant.Text" AdornmentText="ms" />
    
 
     

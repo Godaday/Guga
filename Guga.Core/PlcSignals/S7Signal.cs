@@ -91,7 +91,8 @@ namespace Guga.Core.PlcSignals
                 Value = this.Value,
                 CollectorTime = CollectTime,
                 Status=SignalStatus_,
-                ErrorMessage= ErrorMessage
+                ErrorMessage= ErrorMessage,
+                ReadCycle = ReadCycle// 采集周期（用于计算失效）
 
             };
           return  JsonConvert.SerializeObject(t);

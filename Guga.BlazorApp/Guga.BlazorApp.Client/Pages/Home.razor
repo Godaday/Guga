@@ -1,6 +1,101 @@
 ﻿@page "/"
+@using Guga.Collector.Interfaces
+@using Guga.Collector.Services
+@using PLCCollect.Collector.Interfaces
+@inject ISignalCollector signalCollector
+@inject ICollectorRedisService _collectorRedisService
+@inject ISignalWriter _signalWriterService
+@inject IMasterServeStatus  _masterServeStatus //服务竞选状态
 
-<PageTitle>Home</PageTitle>
+@inject ISimulatedSignalWriter _simulatedSignalWriter
+
+<PageTitle>Home Dasboard</PageTitle>
+ <MudGrid>
+        <MudItem xs="12" sm="6">
+            <MudPaper Elevation="0" Class="pa-4" Style="height: 400px">
+
+                <MudStack>
+    <MudPaper Class="pa-4">
+        <MudStack Row="true" >
+           <MudIconButton Icon="@Icons.Material.Filled.Home"/>
+            <MudStack Justify="Justify.Center" Spacing="0">
+                          
+                            <MudText Typo="Typo.body1">服务编码：@_masterServeStatus.serverOptions.ServerCode</MudText>
+            </MudStack>
+          
+        </MudStack>
+         <MudStack Row="true"  >
+                        @if(_masterServeStatus.IsMaster)
+                        {
+             <MudIconButton Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" />
+
+                        }
+                        else
+
+                        {
+                             <MudIconButton Icon="@Icons.Material.Filled.Cancel" Color="Color.Error" />
+                        }
+                        <MudStack Justify="Justify.Center" Spacing="0">
+                          
+                            <MudText Typo="Typo.body1">运行状态：@_masterServeStatus.IsMaster</MudText>
+            </MudStack>
+              
+            </MudStack>
+    </MudPaper>
+
+    <MudPaper Class="pa-4">
+        <MudStack Spacing="4">
+            <MudNumericField  Min="100" Step="100" Label="采集刷新频率" Variant="Variant.Text" />
+            <MudStack Row="true">
+                <MudTextField T="string" Label="Expires" Mask="@(new DateMask("MM/YY", 'Y', 'M'))" />
+                <MudTextField T="string" Label="CVC" Mask="@(new PatternMask("000"))" />
+            </MudStack>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" DropShadow="false">Pay Now</MudButton>
+        </MudStack>
+    </MudPaper>
+</MudStack>
+
+            </MudPaper>
+        </MudItem>
+          <MudItem xs="12" sm="6">
+            <MudPaper Elevation="0" Class="pa-4" Style="height: 100%" > 
+                 <MudStack Spacing="4">
+                    <MudChip T="string" Icon="@Icons.Material.Filled.Grain"
+             Label="true" Color="Color.Default">
+        写入队列长度: <MudDivider Vertical="true" FlexItem="true" />@_collectorRedisService._CurrentWriteQueueLength
+    </MudChip>
+   
+    
+        <MudNumericField @bind-Value="_signalWriterService._MaxProcessCount"
+                         Min="5" Step="100" Label="模拟单次写入数量" Variant="Variant.Text" AdornmentText="n" />
 
 
-PLC设备信号模拟采集、写入.
+  
+
+
+
+    
+        <MudNumericField  @bind-Value="_simulatedSignalWriter.SimulatedSignalWriteInterval"
+                         Min="50" Step="100" Label="模拟产生间隔" Variant="Variant.Text" AdornmentText="ms" />
+            </MudStack>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
+                </MudItem>
+            </MudGrid>
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudPaper Elevation="2" Class="pa-4" Style="height: 100%"></MudPaper>
+        </MudItem>
+       
+    </MudGrid>
+
+<style>
+
+</style>
