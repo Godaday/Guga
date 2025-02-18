@@ -1,0 +1,173 @@
+﻿﻿
+@using Guga.Collector.Interfaces
+@using Guga.Collector.Services
+@using Guga.Core.Enums
+@using System.Reactive.Linq
+@using System.Collections.Concurrent
+@inject ILogService LogService
+@inject IJSRuntime JS
+
+<!-- 日志分类复选框 -->
+
+<MudStack Class="border-dashed pa-4">
+<MudItem xs="6" sm="4">
+    <MudStack Row="true">
+
+           
+            <MudSelect  @bind-SelectedValues="selectedCategories" 
+            ToStringFunc="(LogCategory category) => category.GetDescription()" Label="日志类型"
+                       MultiSelection="true" Variant="Variant.Text">
+            @foreach (var category in Enum.GetValues<LogCategory>())
+            {
+                <MudSelectItem Value="category">@category.GetDescription()</MudSelectItem>
+            }
+        </MudSelect>
+            <MudSelect Variant="Variant.Text" @bind-SelectedValues="selectedLevels" ToStringFunc="(LogLevel level) => level.GetLogMetadata().Description" Label="日志级别" MultiSelection="true">
+            @foreach (var level in Enum.GetValues<LogLevel>())
+            {
+                <MudSelectItem  Value="level">@level.GetLogMetadata().Description</MudSelectItem>
+            }
+        </MudSelect>
+    </MudStack>
+</MudItem>
+</MudStack>
+    <MudPaper Class="log-container" Id="logContainer" Elevation="1">
+ 
+
+    
+
+        @foreach (var log in logs)
+        {
+            var category = log.Category.GetDescription();
+            var (description, _color, icon) = log.Level.GetLogMetadata();
+            var levelStr = log.Level.ToString();
+
+            <MudText Typo="Typo.body1">
+            <span class="log-time">@log.Timestamp.ToString("yyyy-MM-dd HH:mm:ss.fff")</span>
+                <span class="log-type">
+                    <MudIcon Size="Size.Small" Icon="@GetCategoryIcon(log.Category)" />
+                    [@category]
+                </span>:
+                <span class="log-type" style="color:@_color">
+                    <MudIcon Size="Size.Small" Icon="@GetLogIcon(log.Level.ToString())" Title="@levelStr" />
+                </span>:
+                <span class="log-message">@log.Message</span>
+
+
+            </MudText>
+        }
+        <span class="terminal-cursor"></span>
+
+    </MudPaper>
+
+    <style>
+
+        /* 终端风格的日志输出 */
+        .log-container {
+            font-family: "Courier New", monospace; /* 使用等宽字体 */
+            padding: 10px;
+            background-color: #1e1e1e; /* 背景为深色 */
+            color: #f0f0f0; /* 字体颜色为浅色 */
+            border-radius: 4px;
+            height: 350px;
+            overflow: auto
+        }
+
+        .log-time {
+            color: #888; /* 时间文字颜色 */
+            margin-right: 8px;
+        }
+
+        .log-type {
+            /*   font-weight: bold; */
+        }
+
+        .log-message {
+            margin-left: 5px;
+        }
+    </style>
+
+    <script>
+        function scrollToBottom(elementId) {
+            var element = document.getElementById(elementId);
+            if (element) {
+                element.scrollTop = element.scrollHeight;  // 滚动到元素底部
+            }
+        }
+    </script>
+@code {
+    [Parameter] public int MaxLogCount { get; set; } = 100;
+    private ConcurrentQueue<LogEntry> logs = new();
+    private IDisposable? logSubscription;
+    // 存储选中的分类和级别
+    private IEnumerable<LogCategory> selectedCategories { get; set; }
+    private IEnumerable<LogLevel> selectedLevels { get; set; } 
+    protected override void OnInitialized()
+    {
+        // 默认全选
+        selectedCategories = new List<LogCategory>() { LogCategory .ServiceElection};
+        selectedLevels = Enum.GetValues(typeof(LogLevel)).Cast<LogLevel>().ToHashSet();
+
+        SubscribeToLogs();
+        }
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+        if (!firstRender)
+        {
+            // 初次渲染时调用，确保滚动到最底部
+            await JS.InvokeVoidAsync("scrollToBottom", "logContainer");
+        }
+        }
+    
+
+        // 订阅日志流（带过滤）
+        private void SubscribeToLogs()
+        {
+        // 如果已有订阅，先释放
+        logSubscription?.Dispose();
+
+        // 创建带过滤条件的日志流
+        logSubscription = LogService.Logs
+      .Where(log => selectedCategories.Contains(log.Category) && selectedLevels.Contains(log.Level))
+        .Subscribe(log =>
+        {
+            logs.Enqueue(log);
+
+            // 控制最大日志数量
+            while (logs.Count > MaxLogCount)
+            {
+                logs.TryDequeue(out _); // 从队列头部移除
+            }
+
+            InvokeAsync(StateHasChanged);
+        });
+        }
+
+      
+        private string GetLogIcon(string type)
+        {
+        return type switch
+        {
+            "Error" => @Icons.Material.Filled.Error,
+            "Warning" => @Icons.Material.Filled.Warning,
+            "Info" => @Icons.Material.Filled.Info,
+            _ => @Icons.Material.Filled.QuestionMark,
+        };
+        }
+        private string GetCategoryIcon(LogCategory logCategory)
+        {
+        return logCategory switch
+        {
+            LogCategory.Collector => @Icons.Material.Filled.MoveUp,
+            LogCategory.DeviceConnection => @Icons.Material.Filled.Commit,
+            LogCategory.ServiceElection => @Icons.Material.Filled.Hive,
+            LogCategory.Writer => @Icons.Material.Filled.MoveDown,
+            LogCategory.WriteSimulator => @Icons.Material.Filled.Fitbit,
+            _ => @Icons.Material.Filled.LogoDev,
+        };
+        }
+        public void Dispose()
+        {
+        logSubscription?.Dispose();
+        }
+    }

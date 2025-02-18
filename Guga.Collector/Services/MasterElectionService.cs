@@ -9,6 +9,7 @@ using Guga.Redis.ConfigModels;
 using Newtonsoft.Json;
 using ColinChang.RedisHelper;
 using PLCCollect.Collector.Interfaces;
+using Guga.Core.Enums;
 
 namespace Guga.Collector.Services
 {
@@ -30,13 +31,15 @@ namespace Guga.Collector.Services
         private readonly RedisKeyOptions _redisKeyOptions;
         private readonly IPLCLinkFactory _pLCLinkFactory;
         private readonly IMasterServeStatus _masterServeStatus;
+        private ILogService _logService;
         #endregion
         #region Constructor function
         public MasterElectionService(IOptions<ServerOptions> serverOptions, ICollectorRedisService collectorRedisService,
             ISignalCollector signalCollector,
             ISignalWriter signalWriter, IRedisHelper redisHelper,
             IOptions<RedisKeyOptions> redisKeyOptions,
-            IPLCLinkFactory pLCLinkFactory, IMasterServeStatus masterServeStatus)
+            IPLCLinkFactory pLCLinkFactory, IMasterServeStatus masterServeStatus,
+            ILogService logService)
         {
             _serverOptions = serverOptions.Value;
             _collectorRedisService = collectorRedisService;
@@ -46,19 +49,23 @@ namespace Guga.Collector.Services
             _redisKeyOptions = redisKeyOptions.Value;
             _pLCLinkFactory = pLCLinkFactory;
             _masterServeStatus = masterServeStatus;
-
+            _logService = logService;
         }
         public void StartMasterElection(CancellationToken cancellationToken)
         {
+            _logService.Log($"{_serverOptions.ServerCode}竞选服务启动", LogCategory.ServiceElection, LogLevel.Info);
             Task.Run(() => StartMasterElectionAsync(cancellationToken), cancellationToken);
         }
         private async Task StartMasterElectionAsync(CancellationToken cancellationToken)
         {
+
+
             while (!cancellationToken.IsCancellationRequested)
             {
 
                 try
                 {
+                    _logService.Log($"{_serverOptions.ServerCode}尝试竞选成为主服务",LogCategory.ServiceElection, LogLevel.Info);
                     // 尝试竞选成为主服务
                     var isMaster = await _collectorRedisService.RetryRegisterServiceAsync(
                         _serverOptions.ServerCode!,
@@ -80,7 +87,8 @@ namespace Guga.Collector.Services
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"服务竞选发生错误：{ex.Message}");
+                    _logService.Log($"服务竞选发生错误{ex.Message}", LogCategory.ServiceElection, LogLevel.Error);
+                  
                 }
 
             }
@@ -113,13 +121,15 @@ namespace Guga.Collector.Services
                             _masterServeStatus.IsMaster = true;
                             await StartService(cancellationToken);
                             // 执行主服务逻辑
-                            Console.WriteLine($"[{_serverOptions.ServerCode}] 正在作为主服务运行...");
+                            _logService.Log($"{_serverOptions.ServerCode}正在作为主服务运行...", LogCategory.ServiceElection, LogLevel.Info);
+                          
                         }
                         else
                         {
                             _masterServeStatus.IsMaster = false;
                             await StopService(cancellationToken);
-                            Console.WriteLine($"[{_serverOptions.ServerCode}] 续约失败， 已失去主服务身份");
+
+                            _logService.Log($"{_serverOptions.ServerCode}续约失败， 已失去主服务身份", LogCategory.ServiceElection, LogLevel.Warning);
 
                         }
 
@@ -128,7 +138,7 @@ namespace Guga.Collector.Services
                     {
                         await StopService(cancellationToken);
                         // 如果锁不再属于当前服务，退出主服务逻辑
-                        Console.WriteLine($"[{_serverOptions.ServerCode}] 续约失败， 已失去主服务身份");
+                        _logService.Log($"{_serverOptions.ServerCode}续约失败， 已失去主服务身份", LogCategory.ServiceElection, LogLevel.Warning);
 
                     }
 
@@ -143,7 +153,9 @@ namespace Guga.Collector.Services
             catch (Exception ex)
             {
                 await StopService( cancellationToken);
-                Console.WriteLine($"主服务发生错误：{ex.Message}");
+               
+
+                _logService.Log($"主服务发生错误：{ex.Message}", LogCategory.ServiceElection, LogLevel.Error);
                 // 如果发生错误，退出主服务逻辑
             }
             return result;

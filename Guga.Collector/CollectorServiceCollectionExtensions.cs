@@ -20,11 +20,12 @@ namespace Guga.Collector
         /// <returns></returns>
         public static IServiceCollection AddGugaCollectorServices(this IServiceCollection services)
         {
-
+            services.AddSingleton<ILogService, LogService>();
             services.AddSingleton<IPlcConnectionManager>(provider => {
 
                 var options = provider.GetRequiredService<IOptions<LinkConectionOptions>>().Value;
-              return  new PlcConnectionManager(options.retryInterval, options.retryCount);
+                var logService = provider.GetRequiredService<ILogService>();
+                return  new PlcConnectionManager(options.retryInterval, options.retryCount, logService);
                 
             });//采集器连接失败重试次数，及重试间隔
             services.AddSingleton<ISignalCollector, SignalCollector>();

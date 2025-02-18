@@ -26,10 +26,13 @@ namespace Guga.Collector.Services
 
         private int _ReconnectInterval;
         private int _ReconnectCount;
-        public PlcConnectionManager(int reconnectInterval,int reconnectCount)
+
+        private ILogService _logService;
+        public PlcConnectionManager(int reconnectInterval,int reconnectCount, ILogService logService)
         {
             _ReconnectInterval = reconnectInterval;
             _ReconnectCount = reconnectCount;
+            _logService = logService;
         }
 
         /// <summary>
@@ -65,6 +68,7 @@ namespace Guga.Collector.Services
                         throw new ArgumentOutOfRangeException();
                 }
             }
+            _logService.Log("设备连接初始化", LogCategory.DeviceConnection, LogLevel.Info);
 
         }
         /// <summary>
@@ -116,7 +120,9 @@ namespace Guga.Collector.Services
                     var result = await connection.Value.ConnectAsync(_ReconnectCount, _ReconnectInterval, cancellationToken);
                     if (!result.IsSuccess)
                     {
-                        throw new TimeoutException($"启动失败，建立链路达到重试上限,{connection.Key}");
+                        string errorMsg = $"建立链路达到重试上限,{connection.Key}";
+                        _logService.Log(errorMsg, LogCategory.DeviceConnection, LogLevel.Error);
+                        throw new TimeoutException(errorMsg);
                     }
                 }
 

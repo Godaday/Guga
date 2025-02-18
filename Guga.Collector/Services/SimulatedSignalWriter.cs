@@ -1,4 +1,5 @@
 ﻿using Guga.Collector.Interfaces;
+using Guga.Core.Enums;
 using Guga.Core.Interfaces;
 using Guga.Core.Models;
 using Guga.Core.PlcSignals;
@@ -27,14 +28,15 @@ namespace Guga.Collector.Services
         public bool SimulatedSignalWriteState { get; set; }//模拟信号状态
         public int SimulatedSignalWriteInterval { get; set; } = 200;//模拟产生信号间隔
         private static readonly Random RandomGenerator = new Random();
-
+        private ILogService _logService;
         public SimulatedSignalWriter(
             ICollectorRedisService collectorRedisService,
-            IPLCLinkManager plcLinkManager)
+            IPLCLinkManager plcLinkManager,
+            ILogService logService)
         {
             _collectorRedisService = collectorRedisService;
             _plcLinkManager = plcLinkManager;
-
+            _logService = logService;
         }
 
         public void Start()
@@ -49,13 +51,16 @@ namespace Guga.Collector.Services
             _cancellationTokenSource = new CancellationTokenSource();
 
             Task.Run(async () => await SimulateWriteAsync(_cancellationTokenSource.Token), _cancellationTokenSource.Token);
+
+            _logService.Log($"写入模拟器启动完成", LogCategory.WriteSimulator, LogLevel.Info);
         }
 
         public void Stop()
         {
             if (!SimulatedSignalWriteState)
             {
-                Console.WriteLine("Simulated signal writer is not running.");
+                
+                _logService.Log($"写入模拟器当前没有运行", LogCategory.WriteSimulator, LogLevel.Warning);
                 return;
             }
 
@@ -64,7 +69,7 @@ namespace Guga.Collector.Services
          
             _cancellationTokenSource = null;
 
-            Console.WriteLine("Simulated signal writer has been stopped.");
+            _logService.Log($"写入模拟器停止", LogCategory.WriteSimulator, LogLevel.Warning);
         }
 
         private async Task SimulateWriteAsync(CancellationToken cancellationToken)
@@ -89,6 +94,8 @@ namespace Guga.Collector.Services
                                     signal.Address,
                                     value
                                 ));
+                            string key = $"{plcLink.plclinkInfo.PLCLinkCode}:{signal.Address}";
+                            _logService.Log($"key:{key} value:{value}", LogCategory.WriteSimulator, LogLevel.Info);
 
                             if (!SimulatedSignalWriteState || cancellationToken.IsCancellationRequested)
                                 break;
@@ -101,15 +108,18 @@ namespace Guga.Collector.Services
                     }
                 }
 
-                Console.WriteLine("Simulated signal writer stopped gracefully.");
+              
+                _logService.Log($"信号模拟写入停止", LogCategory.WriteSimulator, LogLevel.Warning);
             }
             catch (TaskCanceledException)
             {
-                Console.WriteLine("Simulated signal writer task canceled.");
+                _logService.Log($"Simulated signal writer task canceled.", LogCategory.WriteSimulator, LogLevel.Warning);
+               
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occurred in simulated signal writer: {ex.Message}");
+               
+                _logService.Log($"An error occurred in simulated signal writer: {ex.Message}", LogCategory.WriteSimulator, LogLevel.Error);
             }
             finally
             {

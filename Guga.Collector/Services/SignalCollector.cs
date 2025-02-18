@@ -1,6 +1,8 @@
 ﻿using ColinChang.RedisHelper;
+using Guga.Collector.ConfigModel;
 using Guga.Collector.Interfaces;
 using Guga.Core.delegates;
+using Guga.Core.Enums;
 using Guga.Core.Interfaces;
 using Guga.Core.Models;
 using Guga.Core.PLCLinks;
@@ -37,9 +39,11 @@ namespace Guga.Collector.Services
 
         private  GetPlcLinksDelegate? _getPlcLinks;//获取链路委托
         private readonly IMasterServeStatus _masterServeStatus;
+
+        private ILogService _logService;
         public SignalCollector(IPlcConnectionManager connectionManager, IOptions<RedisKeyOptions> redisKeyOptions,
             IRedisHelper redisHelper, IPLCLinkFactory pLCLinkFactory, IPLCLinkManager plclinkManager,
-            IMasterServeStatus masterServeStatus)
+            IMasterServeStatus masterServeStatus, ILogService logService)
         {
             _connectionManager = connectionManager;
             _redisKeyOptions = redisKeyOptions.Value;
@@ -47,6 +51,7 @@ namespace Guga.Collector.Services
             _pLCLinkFactory = pLCLinkFactory;
             _plclinkManager = plclinkManager;
             _masterServeStatus = masterServeStatus;
+            _logService = logService;
         }
         public async Task ReLoadLinkAndSignal()
         {
@@ -80,6 +85,7 @@ namespace Guga.Collector.Services
                 AddTimer(item, cancellationToken);
             }
             IsInit = true;
+            _logService.Log($"信号采集器初始化完成", LogCategory.Collector, LogLevel.Warning);
             return this;
 
 
@@ -99,9 +105,7 @@ namespace Guga.Collector.Services
                     item.Value.Change(0, GetTimerKey(item.Key));//启动定时器
                 }
 
-#if DEBUG
-                Console.WriteLine("定时器已启动");
-#endif
+                _logService.Log($"信号采集器启动", LogCategory.Collector, LogLevel.Info);
             }
 
 
@@ -133,9 +137,7 @@ namespace Guga.Collector.Services
                 }
                 Running = false;
                 IsUserStop = isUserStop;
-#if DEBUG
-                Console.WriteLine("定时器已关闭");
-#endif
+                _logService.Log($"信号采集器停止", LogCategory.Collector, LogLevel.Warning);
             }
         }
 
@@ -201,10 +203,18 @@ namespace Guga.Collector.Services
                     ConcurrentDictionary<string, string> entries = new ConcurrentDictionary<string, string>();
                     foreach (var signal in signals)
                     {
-                        entries.TryAdd($"{signal.PLCLink.plclinkInfo.PLCLinkCode}:{signal.Address}", signal.GetSignalStoreValue());
+                        string key = $"{signal.PLCLink.plclinkInfo.PLCLinkCode}:{signal.Address}";
+                       var addresult = entries.TryAdd(key, signal.GetSignalStoreValue());
+                        if (addresult)
+                        {
+                            _logService.Log($"key:{key} value:{signal.GetValue()}", LogCategory.Collector, LogLevel.Info);
+                        }
+                    
                     }
                     await _redisHelper.HashSetAsync(_redisKeyOptions._Signal_Values, entries);
                     //plclink.UpdateSignals(signalResult.Data);
+                   
+                   
                 }
             }
             else

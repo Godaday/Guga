@@ -1,4 +1,5 @@
 ﻿using Guga.Collector.Interfaces;
+using Guga.Core.Enums;
 using Guga.Core.Interfaces;
 using PLCCollect.Collector.Interfaces;
 
@@ -19,13 +20,15 @@ namespace Guga.Collector.Services
         public bool IsInit { get; private set; } = false;
         public bool IsUserStop { get; set; } = false;
         private readonly IMasterServeStatus _masterServeStatus;
+        private ILogService _logService;
         public SignalWriter(IPlcConnectionManager plcConnectionManager, IPLCLinkManager plclinkManager,
-            ICollectorRedisService collectorRedisService, IMasterServeStatus masterServeStatus)
+            ICollectorRedisService collectorRedisService, IMasterServeStatus masterServeStatus, ILogService logService)
         {
             _connectionManager = plcConnectionManager;
             _plclinkManager = plclinkManager;
             _collectorRedisService = collectorRedisService;
             _masterServeStatus = masterServeStatus;
+            _logService = logService;
         }
 
         public SignalWriter Init(int writeInterval, int maxProcessCount,CancellationToken cancellationToken)
@@ -33,9 +36,8 @@ namespace Guga.Collector.Services
             _MaxProcessCount = maxProcessCount;
             _WriteInterval = writeInterval;
             _timer = new Timer(async _ => await WriteSiganlForTimerAsync(cancellationToken), null, Timeout.Infinite, Timeout.Infinite);
-#if DEBUG
-            Console.WriteLine("写入信号服务 初始化完成");
-#endif
+           
+            _logService.Log($"写入器初始化完成", LogCategory.Writer, LogLevel.Info);
             IsInit = true;
             return this;
         }
@@ -81,24 +83,25 @@ namespace Guga.Collector.Services
                             try
                             {
                                 var writeResult = await linkConn.WriteDataAsync(signal, s.Value);
-
+                                string key = $"{signal.PLCLink.plclinkInfo.PLCLinkCode}:{signal.Address}";
                                 if (writeResult.IsSuccess)
                                 {
                                     await _collectorRedisService.DequeueSignalWriteDataAsync();//出队
-
+                                    _logService.Log($"key:{key} value:{s.Value}", LogCategory.Writer, LogLevel.Info);
                                 }
                                 else
                                 {
                                     await _collectorRedisService.DequeueSignalWriteDataAsync();//出队
 
                                      await _collectorRedisService.EnqueueAsyncSignalWriteDataAsync(s);//不成功 重新入队
+                                    _logService.Log($"key:{key} value:{s.Value}写入失败，重新入队", LogCategory.Writer, LogLevel.Warning);
                                 }
 
                             }
-                            catch (Exception)
+                            catch (Exception ex)
                             {
-
-                                throw;
+                                _logService.Log(ex.Message, LogCategory.Writer, LogLevel.Error);
+                                throw ex ;
                             }
 
                         }
@@ -123,6 +126,7 @@ namespace Guga.Collector.Services
             {
                 _timer?.Change(0, _WriteInterval);
                 IsRunning = true;
+                _logService.Log($"写入器启动完成", LogCategory.Writer, LogLevel.Info);
             });
             }
         }
@@ -138,6 +142,7 @@ namespace Guga.Collector.Services
                 _timer?.Change(Timeout.Infinite, Timeout.Infinite);//启动定时器
                 IsRunning = false;
             });
+                _logService.Log($"写入器停止", LogCategory.Writer, LogLevel.Warning);
                 IsUserStop = isUserStop;
             }
         }
@@ -153,6 +158,7 @@ namespace Guga.Collector.Services
                 Init(_WriteInterval, _MaxProcessCount, cancellationToken);
                 await Start(cancellationToken);
             });
+                _logService.Log($"写入器重启完成", LogCategory.Writer, LogLevel.Warning);
             }
         }
     }

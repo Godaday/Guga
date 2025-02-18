@@ -9,8 +9,10 @@
 @inject ISnackbar Snackbar
 
 
-<MudToolBar >
+       
+    <MudGrid>
    
+    <MudItem xs="6">
        
         <MudButtonGroup Color="Color.Primary" Size="Size.Large" Variant="Variant.Filled">
         <MudButton Disabled="@_simulatedSignalWriter.SimulatedSignalWriteState" OnClick='SignalWriterStart'>
@@ -34,38 +36,46 @@
         </MudButtonGroup>
     <MudSpacer />
 
+    </MudItem>
 
-</MudToolBar>
 
 
-<MudToolBar Class="d-flex flex-nowrap gap-4 overflow-auto">
+     <MudItem xs="4">
 
-  
-   
+    </MudItem>
 
     
        
 
-    <MudNumericField   @bind-Value="_signalWriterService._WriteInterval"
-                     Min="50" Step="100" Label="写入间隔" Variant="Variant.Text" AdornmentText="ms" />
+    <MudItem xs="1">
+            
+                <MudNumericField Class="mud-input-root" @bind-Value="_TopCount" Min="10" Max="100" Step="5" Label="Top"
+                     Variant="Variant.Text" AdornmentText="n"  />
+    
+        
+          
+    </MudItem>
+        <MudItem xs="1">
+           
+        
+                   
+              <MudNumericField Class="mud-input-root" @bind-Value="RefreshInterval" Min="100" Step="100" Label="刷新频率" Variant="Variant.Text"
+                     />
+    </MudItem>
+        </MudGrid>
    
 
  
         
 
        
-        <MudNumericField Class="mud-input-root" @bind-Value="_TopCount" Min="10" Max="100" Step="5" Label="Top"
-                     Variant="Variant.Text" AdornmentText="n"  />
-                   
-        <MudNumericField @bind-Value="RefreshInterval" Min="100" Step="100" Label="刷新频率" Variant="Variant.Text"
-                     />
+
   
 
 
 
 
 
-</MudToolBar>
 
 <MudDataGrid Items="@_WaitingForWritenSignals">
     
