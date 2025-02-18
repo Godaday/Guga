@@ -12,11 +12,11 @@
 @inject ILogService LogService
 <PageTitle>Home Dasboard</PageTitle>
 <MudGrid>
-    <MudItem xs="12" sm="6" Style="height:320px">
+    <MudItem xs="12" sm="6" Style="height:370px">
         
 
-            <MudStack>
-                <MudPaper Class="pa-4">
+         
+            <MudPaper Class="pa-4" Style="height:100%">
 
                     <MudText Typo="Typo.h6">服务状态</MudText>
                     <MudDivider />
@@ -92,25 +92,25 @@
                 </MudPaper>
                 
                 </MudPaper>
-            </MudStack>
+           
 
        
     </MudItem>
-    <MudItem xs="12" sm="6"  Style="height:320px">
+    <MudItem xs="12" sm="6"  Style="height:370px">
        
-        <MudPaper Class="pa-4" Style="height:100%">
+        <MudPaper Class="pa-4" Style="height:100%" >
             <MudText Typo="Typo.h6">模拟参数</MudText>
             <MudDivider />
         
-            <MudPaper Class="pa-4" Elevation="0">
+            <MudPaper Class="pa-4" Elevation="0" >
 
 
 
-                <MudStack Spacing="4">
+                <MudStack Spacing="4" >
 
 
 
-                    <MudNumericField Variant="Variant.Text" @bind-Value="_signalWriterService._MaxProcessCount"
+                    <MudNumericField  Dense="true" Variant="Variant.Outlined" @bind-Value="_signalWriterService._MaxProcessCount"
                                      Min="5" Step="100" Label="模拟单次写入数量"  AdornmentText="n" />
 
 
@@ -119,12 +119,12 @@
 
 
 
-                    <MudNumericField Variant="Variant.Text" @bind-Value="_simulatedSignalWriter.SimulatedSignalWriteInterval"
+                    <MudNumericField  Dense="true" Variant="Variant.Outlined" @bind-Value="_simulatedSignalWriter.SimulatedSignalWriteInterval"
                                      Min="50" Step="100" Label="模拟产生间隔"  AdornmentText="ms" />
 
 
 
-                    <MudNumericField Variant="Variant.Text" @bind-Value="_signalWriterService._WriteInterval"
+                    <MudNumericField Dense="true" Variant="Variant.Outlined" @bind-Value="_signalWriterService._WriteInterval"
                                      Min="50" Step="100" Label="写入间隔"  AdornmentText="ms" />
 
 

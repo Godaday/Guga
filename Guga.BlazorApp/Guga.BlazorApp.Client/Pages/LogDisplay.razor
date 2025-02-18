@@ -14,15 +14,15 @@
     <MudStack Row="true">
 
            
-            <MudSelect  @bind-SelectedValues="selectedCategories" 
-            ToStringFunc="(LogCategory category) => category.GetDescription()" Label="日志类型"
-                       MultiSelection="true" Variant="Variant.Text">
+            <MudSelect Dense="true" @bind-SelectedValues="selectedCategories"
+                       ToStringFunc="(LogCategory category) => category.GetDescription()" Label="日志类型"
+                       MultiSelection="true" Variant="Variant.Outlined">
             @foreach (var category in Enum.GetValues<LogCategory>())
             {
                 <MudSelectItem Value="category">@category.GetDescription()</MudSelectItem>
             }
         </MudSelect>
-            <MudSelect Variant="Variant.Text" @bind-SelectedValues="selectedLevels" ToStringFunc="(LogLevel level) => level.GetLogMetadata().Description" Label="日志级别" MultiSelection="true">
+            <MudSelect Dense="true" Variant="Variant.Outlined" @bind-SelectedValues="selectedLevels" ToStringFunc="(LogLevel level) => level.GetLogMetadata().Description" Label="日志级别" MultiSelection="true">
             @foreach (var level in Enum.GetValues<LogLevel>())
             {
                 <MudSelectItem  Value="level">@level.GetLogMetadata().Description</MudSelectItem>
@@ -69,7 +69,7 @@
             background-color: #1e1e1e; /* 背景为深色 */
             color: #f0f0f0; /* 字体颜色为浅色 */
             border-radius: 4px;
-            height: 350px;
+            height: 330px;
             overflow: auto
         }
 
