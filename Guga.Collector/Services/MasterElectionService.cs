@@ -118,11 +118,21 @@ namespace Guga.Collector.Services
                         if (isRenewalSeccess)
                         {
                             result = true;
-                            _masterServeStatus.IsMaster = true;
+                          
                             await StartService(cancellationToken);
                             // 执行主服务逻辑
-                            _logService.Log($"{_serverOptions.ServerCode}正在作为主服务运行...", LogCategory.ServiceElection, LogLevel.Info);
-                          
+                            var logmsg = $"{_serverOptions.ServerCode}正在作为主服务运行...";
+                            if (_masterServeStatus.IsMaster)
+                            {
+                                logmsg= $"{_serverOptions.ServerCode}服务续约成功...";
+                            }
+                              
+                              
+
+                      _logService.Log(logmsg, LogCategory.ServiceElection, LogLevel.Info);
+
+
+                            _masterServeStatus.IsMaster = true;
                         }
                         else
                         {
