@@ -275,11 +275,15 @@ namespace Guga.BlazorApp
                     List<PLCLink> plclinks = new List<PLCLink>();
                     foreach (var d in plclinkInfos)
                     {
+
                         PLCLink plclink = _pLCLinkFactory.CreatePLCLink<UniversalPLCLink>(door =>
                         {
                             door.plclinkInfo = d;
                         });
-                        plclinks.Add(plclink);
+                       
+                            plclinks.Add(plclink);
+                       
+                       
                     }
                     result.AddRange(plclinks);
                 }

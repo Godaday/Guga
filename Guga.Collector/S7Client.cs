@@ -20,9 +20,9 @@ namespace Guga.Collector
         private Plc _plc;
 
 
-        public S7Client(string ipAddress, CpuType cpuType, short rack, short slot)
+        public S7Client(string ipAddress,int port, CpuType cpuType, short rack, short slot)
         {
-            _plc = new Plc(cpuType, ipAddress, rack, slot);
+            _plc = new Plc(cpuType, ipAddress, port, rack, slot);
 
         }
 

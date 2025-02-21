@@ -13,6 +13,7 @@ namespace Guga.Collector.Interfaces
     {
         public  IRedisHelper _redisHelper { get; }//redis 操作
         public long _CurrentWriteQueueLength { get;  }//队列长度
+        public IObservable<long> WriteQueueLengthChanged { get; }
         Task<T> DequeueAsync<T>(string key) where T : class;
         Task<SignalWriteModel> DequeueSignalWriteDataAsync();
         Task<long> EnqueueAsync<T>(string key, T value) where T : class;

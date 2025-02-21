@@ -5,6 +5,8 @@ using Guga.Redis.ConfigModels;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 
 namespace Guga.Collector.Services
 {
@@ -14,7 +16,23 @@ namespace Guga.Collector.Services
     {
         private readonly RedisKeyOptions _redisKeyOptions;//Redis key
         public IRedisHelper _redisHelper { get; private set; }//redis 操作
-        public  long _CurrentWriteQueueLength { get; private set; } = 0;
+        private long _currentWriteQueueLength = 0;
+        public long _CurrentWriteQueueLength
+        {
+            get => _currentWriteQueueLength;
+            set
+            {
+                if (_currentWriteQueueLength != value)
+                {
+                    _currentWriteQueueLength = value;
+                    _writeQueueLengthSubject.OnNext(value); // 推送新值
+                }
+            }
+        } 
+
+        private readonly Subject<long> _writeQueueLengthSubject = new();
+        public IObservable<long> WriteQueueLengthChanged => _writeQueueLengthSubject;
+
         /// <summary>
         /// cotr
         /// </summary>
@@ -36,9 +54,9 @@ namespace Guga.Collector.Services
         /// <returns>入队后队列长度</returns>
         public async Task<long> EnqueueAsyncSignalWriteDataAsync(SignalWriteModel signalWriteModel)
         {
-            var enqueLenth = await EnqueueAsync<SignalWriteModel>(_redisKeyOptions._Signals_Write, signalWriteModel);
-            _CurrentWriteQueueLength = enqueLenth;
-            return enqueLenth;
+           var  length= await EnqueueAsync<SignalWriteModel>(_redisKeyOptions._Signals_Write, signalWriteModel);
+            _CurrentWriteQueueLength = length;
+            return length;
         }
         /// <summary>
         /// 信号值读取
@@ -82,12 +100,16 @@ namespace Guga.Collector.Services
         /// <returns></returns>
         public async Task<IEnumerable<SignalWriteModel>> PeekSignalWriteDataAsync(long start = 0L, long stop = 0L)
         {
+           
+
             if (_CurrentWriteQueueLength > 0)
             {
                 return await PeekRangeAsync<SignalWriteModel>(_redisKeyOptions._Signals_Write, start, stop);
             }
             return null;
-           
+
+
+
         }
         #endregion
         #region 基础函数

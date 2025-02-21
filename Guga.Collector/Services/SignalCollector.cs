@@ -39,7 +39,7 @@ namespace Guga.Collector.Services
 
         private  GetPlcLinksDelegate? _getPlcLinks;//获取链路委托
         private readonly IMasterServeStatus _masterServeStatus;
-
+  
         private ILogService _logService;
         public SignalCollector(IPlcConnectionManager connectionManager, IOptions<RedisKeyOptions> redisKeyOptions,
             IRedisHelper redisHelper, IPLCLinkFactory pLCLinkFactory, IPLCLinkManager plclinkManager,

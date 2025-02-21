@@ -26,7 +26,7 @@ namespace Guga.Collector.Services
         private readonly ICollectorRedisService _collectorRedisService;
         private readonly IPLCLinkManager _plcLinkManager;
         public bool SimulatedSignalWriteState { get; set; }//模拟信号状态
-        public int SimulatedSignalWriteInterval { get; set; } = 200;//模拟产生信号间隔
+        public int SimulatedSignalWriteInterval { get; set; } = 1000;//模拟产生信号间隔
         private static readonly Random RandomGenerator = new Random();
         private ILogService _logService;
         public SimulatedSignalWriter(
@@ -50,9 +50,9 @@ namespace Guga.Collector.Services
             SimulatedSignalWriteState = true;
             _cancellationTokenSource = new CancellationTokenSource();
 
-            Task.Run(async () => await SimulateWriteAsync(_cancellationTokenSource.Token), _cancellationTokenSource.Token);
+            Task.Run(async () => await SimulateWriteAsync(_cancellationTokenSource.Token));
 
-            _logService.Log($"写入模拟器启动完成", LogCategory.WriteSimulator, LogLevel.Info);
+            _logService.Log($"信号模拟器写入启动完成", LogCategory.WriteSimulator, LogLevel.Info);
         }
 
         public void Stop()
@@ -60,16 +60,14 @@ namespace Guga.Collector.Services
             if (!SimulatedSignalWriteState)
             {
                 
-                _logService.Log($"写入模拟器当前没有运行", LogCategory.WriteSimulator, LogLevel.Warning);
-                return;
+                    _logService.Log($"信号模拟器写入当前没有运行", LogCategory.WriteSimulator, LogLevel.Warning);
+                    return;
             }
 
             SimulatedSignalWriteState = false;
             _cancellationTokenSource?.Cancel();
-         
-            _cancellationTokenSource = null;
 
-            _logService.Log($"写入模拟器停止", LogCategory.WriteSimulator, LogLevel.Warning);
+            _logService.Log($"信号模拟写入停止", LogCategory.WriteSimulator, LogLevel.Warning);
         }
 
         private async Task SimulateWriteAsync(CancellationToken cancellationToken)
@@ -146,6 +144,23 @@ namespace Guga.Collector.Services
                     _ => throw new NotSupportedException($"Unsupported VarType: {s7Signal.S7VarType}")
                 };
             }
+
+            if (signal is ModbusSignal modbusSignal)
+            {
+                return modbusSignal.VarType switch
+                {
+                    ModbusDataType.BOOL => Convert.ToBoolean(RandomGenerator.Next(0, 2) == 1), // 随机布尔值
+                    ModbusDataType.INT16 => Convert.ToInt16(RandomGenerator.Next(short.MinValue, short.MaxValue + 1)),
+                    ModbusDataType.UINT16 => (ushort)RandomGenerator.Next(ushort.MinValue, ushort.MaxValue + 1),
+                    ModbusDataType.INT32 => RandomGenerator.Next(int.MinValue, int.MaxValue),
+                    ModbusDataType.UINT32 => (uint)RandomGenerator.NextInt64(0, uint.MaxValue),
+                    ModbusDataType.FLOAT => (float)(RandomGenerator.NextDouble() * 1000), // 随机浮点数
+                    ModbusDataType.DOUBLE => RandomGenerator.NextDouble() * 1000, // 随机双精度浮点数
+                    ModbusDataType.STRING => GenerateRandomString(6), // 长度为10的随机字符串
+                    _ => throw new NotSupportedException($"Unsupported VarType: {modbusSignal.VarType}")
+                };
+            }
+
             throw new InvalidOperationException("Signal is not an S7Signal.");
         }
         static string GenerateRandomString(int length)

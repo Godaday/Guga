@@ -86,8 +86,10 @@
 
                     </MudStack>
                 <MudPaper Class="pa-4" Elevation="0">
-                    <MudChip T="string" Icon="@Icons.Custom.Uncategorized.Radioactive" Label="true" Color="Color.Warning" Style="color:black;">
-                        写入队列长度: @_collectorRedisService._CurrentWriteQueueLength
+                    <MudChip T="string" Icon="@Icons.Custom.Uncategorized.Radioactive" 
+                    Label="true" Color="Color.Warning" Style="color:black;"
+                        >
+                    待写入信号队列: @_currentWriteQueueLength
                     </MudChip>
                 </MudPaper>
                 
@@ -111,8 +113,10 @@
 
 
                     <MudNumericField  Dense="true" Variant="Variant.Outlined" @bind-Value="_signalWriterService._MaxProcessCount"
-                                     Min="5" Step="100" Label="模拟单次写入数量"  AdornmentText="n" />
+                                     Min="5" Step="100" Label="单次写入数量"  AdornmentText="n" />
 
+                    <MudNumericField Dense="true" Variant="Variant.Outlined" @bind-Value="_signalWriterService._WriteInterval"
+                                     Min="50" Step="100" Label="写入间隔" AdornmentText="ms" />
 
 
 
@@ -122,10 +126,6 @@
                     <MudNumericField  Dense="true" Variant="Variant.Outlined" @bind-Value="_simulatedSignalWriter.SimulatedSignalWriteInterval"
                                      Min="50" Step="100" Label="模拟产生间隔"  AdornmentText="ms" />
 
-
-
-                    <MudNumericField Dense="true" Variant="Variant.Outlined" @bind-Value="_signalWriterService._WriteInterval"
-                                     Min="50" Step="100" Label="写入间隔"  AdornmentText="ms" />
 
 
 
@@ -158,13 +158,23 @@
     private bool WriterSwith { get; set; }
     private bool SimulateSwith { get; set; }
     private List<LogEntry> logs = new();
-    private IDisposable? logSubscription;
+
+
+    private long _currentWriteQueueLength;
+    private IDisposable? _writeQueueLengthSubscription;
 
     protected override Task OnInitializedAsync()
     {
+      
         CollectorSwith = signalCollector.IsRunning;
         WriterSwith = _signalWriterService.IsRunning;
         SimulateSwith = _simulatedSignalWriter.SimulatedSignalWriteState;
+        _writeQueueLengthSubscription = _collectorRedisService.WriteQueueLengthChanged
+         .Subscribe(length =>
+         {
+             _currentWriteQueueLength = length;
+             InvokeAsync(StateHasChanged); // Blazor安全渲染
+         });
         return base.OnInitializedAsync();
     }
 
@@ -231,6 +241,10 @@
          
 
         }
+    }
+    public void Dispose()
+    {
+        _writeQueueLengthSubscription?.Dispose();
     }
 
 }

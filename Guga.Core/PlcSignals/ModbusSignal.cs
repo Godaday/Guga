@@ -1,6 +1,8 @@
 ﻿using Guga.Core.Enums;
 using Guga.Core.Interfaces;
 using Guga.Core.Models;
+using Newtonsoft.Json;
+using S7.Net;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,9 +27,31 @@ namespace Guga.Core.PlcSignals
         public string SignalName { get; set; }
         public string Address { get; set; }
         public object? Value { get; set; }
-        public byte FunctionCode { get; set; }
-        public ushort StartRegister { get; set; }
-        public ushort RegisterCount { get; set; }
+
+        /// <summary>
+        /// 从站ID
+        /// </summary>
+        public byte SlaveId { get; set; }
+        /// <summary>
+        /// 寄存器类型
+        /// </summary>
+        public ModbusRegisterType RegisterType { get; set; }
+        /// <summary>
+        /// 起始地址
+        /// </summary>
+        public ushort StartAddress { get; set; }
+        /// <summary>
+        /// 读取长度（以寄存器数量计算）
+        /// </summary>
+        public ushort Length { get; set; }
+        /// <summary>
+        /// 数据类型
+        /// </summary>
+        public ModbusDataType VarType { get; set; }
+        /// <summary>
+        /// 消息
+        /// </summary>
+        public string ErrorMessage { get; set; }
         public IPLCLink PLCLink { get; set; }
         public DateTime CollectTime { get; set; }
         public ModbusSignal(string signalName, string address)
@@ -36,18 +60,46 @@ namespace Guga.Core.PlcSignals
             Address = address;
         }
 
+
+        /// <summary>
+        /// 点位地址转换（地址字符串格式：{从站ID}.{寄存器类型}.{起始地址}.{读取长度} ）
+        /// </summary>
+        public static (bool Success, byte SlaveId, ModbusRegisterType RegisterType, ushort StartAddress, ushort Length) TryParse(string modbusAddress)
+        {
+            if (string.IsNullOrWhiteSpace(modbusAddress))
+                return (false, 0, default, 0, 0);
+
+            try
+            {
+                var parts = modbusAddress.Split('.');
+                if (parts.Length != 5)
+                    return (false, 0, default, 0, 0);
+
+                byte slaveId = byte.Parse(parts[0]);
+                ModbusRegisterType registerType = Enum.Parse<ModbusRegisterType>(parts[1], true);
+                ushort startAddress = ushort.Parse(parts[2]);
+                ushort length = ushort.Parse(parts[3]);
+
+                return (true, slaveId, registerType, startAddress, length);
+            }
+            catch
+            {
+                return (false, 0, default, 0, 0);
+            }
+        }
+
         public void Configure<TConfig>(TConfig config)
         {
-            if (config is ModbusConfig modbusConfig)
-            {
-                FunctionCode = modbusConfig.FunctionCode;
-                StartRegister = modbusConfig.StartRegister;
-                RegisterCount = modbusConfig.RegisterCount;
-            }
-            else
-            {
-                throw new ArgumentException("Invalid config type for ModbusSignal.");
-            }
+            //if (config is ModbusConfig modbusConfig)
+            //{
+            //    FunctionCode = modbusConfig.FunctionCode;
+            //    StartAddress = modbusConfig.StartRegister;
+            //    Length = modbusConfig.RegisterCount;
+            //}
+            //else
+            //{
+            //    throw new ArgumentException("Invalid config type for ModbusSignal.");
+            //}
         }
 
         public object GetValue()
@@ -57,7 +109,7 @@ namespace Guga.Core.PlcSignals
 
         public void SetValue(object value, bool updateCollectTime = true)
         {
-            value = Value;
+          Value = value;
             if (updateCollectTime)
             {
                 CollectTime = DateTime.Now;
@@ -70,7 +122,18 @@ namespace Guga.Core.PlcSignals
         /// <param name="dateTime"></param>
         /// <returns></returns>
         public string GetSignalStoreValue() {
-            return null;
+            var t = new SignalValueModel()
+            {
+                LinkCode = this.PLCLink.plclinkInfo.PLCLinkCode,
+                Address = this.Address,
+                Value = this.Value,
+                CollectorTime = CollectTime,
+                Status = SignalStatus_,
+                ErrorMessage = ErrorMessage,
+                ReadCycle = ReadCycle// 采集周期（用于计算失效）
+
+            };
+            return JsonConvert.SerializeObject(t);
         }
     }
 }

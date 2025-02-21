@@ -2,6 +2,7 @@
 using Guga.Core.Enums;
 using Guga.Core.Interfaces;
 using PLCCollect.Collector.Interfaces;
+using System.Threading;
 
 namespace Guga.Collector.Services
 {
@@ -21,6 +22,7 @@ namespace Guga.Collector.Services
         public bool IsUserStop { get; set; } = false;
         private readonly IMasterServeStatus _masterServeStatus;
         private ILogService _logService;
+   
         public SignalWriter(IPlcConnectionManager plcConnectionManager, IPLCLinkManager plclinkManager,
             ICollectorRedisService collectorRedisService, IMasterServeStatus masterServeStatus, ILogService logService)
         {
@@ -142,6 +144,7 @@ namespace Guga.Collector.Services
                 _timer?.Change(Timeout.Infinite, Timeout.Infinite);//启动定时器
                 IsRunning = false;
             });
+                
                 _logService.Log($"写入器停止", LogCategory.Writer, LogLevel.Warning);
                 IsUserStop = isUserStop;
             }

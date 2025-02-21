@@ -49,9 +49,7 @@ namespace Guga.Collector.Services
             {
                 var protocolType = group.Key;
                 var protocolPLCLinks = group.ToList();
-                switch (protocolType)
-                {
-                    case ProtocolType.S7:
+         
                         foreach (var plclink in protocolPLCLinks)
                         {
                             var connectionKey = plclink.plclinkInfo.GetKey();
@@ -60,13 +58,7 @@ namespace Guga.Collector.Services
                                 _connectionPool[connectionKey] = CreateClient(plclink);
                             }
                         }
-                        break;
-                    case ProtocolType.Modbus:
-                        //创建modbus连接
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
+               
             }
             _logService.Log("设备连接初始化", LogCategory.DeviceConnection, LogLevel.Info);
 
@@ -94,8 +86,8 @@ namespace Guga.Collector.Services
         public IPLCLinkClient CreateClient(PLCLink link) =>
             link.plclinkInfo.ProtocolType_ switch
             {
-                ProtocolType.S7 => new S7Client(link.plclinkInfo.Ip, (CpuType)link.plclinkInfo.S7CPUType_!, link.plclinkInfo.rack, link.plclinkInfo.slot),
-                //ProtocolType.modbus => new ModbusClient(plclink),
+                ProtocolType.S7 => new S7Client(link.plclinkInfo.Ip, link.plclinkInfo.Port.Value, (CpuType)link.plclinkInfo.S7CPUType_!, link.plclinkInfo.rack, link.plclinkInfo.slot),
+                ProtocolType.Modbus => new ModbusClient(link.plclinkInfo.Ip, link.plclinkInfo.Port!.Value),
                 _ => throw new ArgumentOutOfRangeException()
             };
         /// <summary>

@@ -251,7 +251,11 @@ namespace Guga.Collector.Services
                         {
                             door.plclinkInfo = d;
                         });
-                        plclinks.Add(plclink);
+                        //仅Modbus链路
+                        //if (d.ProtocolType_ == ProtocolType.Modbus)
+                        //{
+                            plclinks.Add(plclink);
+                       // }
                     }
                     result.AddRange(plclinks);
                 }
