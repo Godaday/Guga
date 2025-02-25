@@ -1,17 +1,13 @@
-﻿using Guga.Core.Enums;
-using Guga.Core.Interfaces;
-using Guga.Core.Models;
-using Guga.Transformer.Interfaces;
+﻿using Guga.Core.Interfaces;
+using Guga.Models.Collector;
 using MediatR;
-using System.Collections.Generic;
-using System.Text.Json.Serialization;
 
 namespace Guga.Core.PLCLinks
 {
     /// <summary>
     /// 链路基础
     /// </summary>
-    public abstract class PLCLink: IPLCLink, IPLCLinkRules
+    public abstract class PLCLink: IPLCLink
     {
         /// <summary>
         /// Mediator
@@ -110,18 +106,7 @@ namespace Guga.Core.PLCLinks
         /// <returns></returns>
         public abstract void SignalChangeEvent();
 
-        /// <summary>
-        /// 获取信号转换业务规则
-        /// </summary>
-        /// <returns></returns>
-        public abstract List<IRule> GetSignalToBusinessRules();
 
-
-        /// <summary>
-        /// 获取业务对象转信号的规则
-        /// </summary>
-        /// <returns></returns>
-        public abstract List<IRule> GetBusinessToSignalRules();
         
     }
 

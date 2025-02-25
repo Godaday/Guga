@@ -1,18 +1,13 @@
 ﻿using ColinChang.RedisHelper;
-using Guga.Collector.ConfigModel;
 using Guga.Collector.Interfaces;
 using Guga.Core.delegates;
-using Guga.Core.Enums;
 using Guga.Core.Interfaces;
-using Guga.Core.Models;
 using Guga.Core.PLCLinks;
-using Guga.Core.PlcSignals;
+using Guga.Models.Enums;
 using Guga.Redis.ConfigModels;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using PLCCollect.Collector.Interfaces;
 using System.Collections.Concurrent;
-using System.Threading;
 
 namespace Guga.Collector.Services
 {

@@ -1,5 +1,5 @@
 ﻿using Guga.Collector.Interfaces;
-using Guga.Core.Enums;
+using Guga.Models.Enums;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 

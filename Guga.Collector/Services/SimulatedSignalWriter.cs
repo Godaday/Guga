@@ -1,14 +1,9 @@
 ﻿using Guga.Collector.Interfaces;
-using Guga.Core.Enums;
 using Guga.Core.Interfaces;
-using Guga.Core.Models;
 using Guga.Core.PlcSignals;
+using Guga.Models.Collector;
+using Guga.Models.Enums;
 using S7.Net;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Guga.Collector.Services
 {

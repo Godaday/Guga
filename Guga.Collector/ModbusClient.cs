@@ -1,11 +1,9 @@
 ﻿using Guga.Collector.Interfaces;
 using Guga.Collector.Models;
-using Guga.Core.Enums;
 using Guga.Core.Interfaces;
 using Guga.Core.PlcSignals;
+using Guga.Models.Enums;
 using NModbus;
-using NModbus.Device;
-using System;
 using System.Net.Sockets;
 using System.Text;
 

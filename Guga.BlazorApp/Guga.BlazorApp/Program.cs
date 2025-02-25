@@ -2,11 +2,10 @@ using ColinChang.RedisHelper;
 using Guga.BlazorApp;
 using Guga.BlazorApp.Components;
 using Guga.Collector;
-using Guga.Collector.ConfigModel;
 using Guga.Core;
+using Guga.Options.Collector;
 using Guga.Redis;
 using Guga.Redis.ConfigModels;
-using Microsoft.Extensions.Options;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);

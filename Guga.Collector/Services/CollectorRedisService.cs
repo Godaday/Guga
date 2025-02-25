@@ -1,6 +1,6 @@
 ﻿using ColinChang.RedisHelper;
 using Guga.Collector.Interfaces;
-using Guga.Core.Models;
+using Guga.Models.Collector;
 using Guga.Redis.ConfigModels;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;

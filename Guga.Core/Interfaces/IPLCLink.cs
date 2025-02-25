@@ -1,18 +1,11 @@
-﻿using Guga.Core.Enums;
-using Guga.Core.Models;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Guga.Models.Collector;
 
 namespace Guga.Core.Interfaces
 {
     /// <summary>
     /// 链路接口
     /// </summary>
-   public interface IPLCLink
+    public interface IPLCLink
     {
 
         /// <summary>

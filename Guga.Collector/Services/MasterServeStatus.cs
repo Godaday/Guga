@@ -1,12 +1,6 @@
-﻿using Guga.Collector.ConfigModel;
-using Guga.Redis.ConfigModels;
+﻿using Guga.Options.Collector;
 using Microsoft.Extensions.Options;
 using PLCCollect.Collector.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PLCCollect.Collector.Services
 {

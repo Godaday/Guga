@@ -1,14 +1,4 @@
-﻿using Guga.Core.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Guga.Core.Enums;
-using Guga.Transformer.Interfaces;
-using MediatR;
-
-namespace Guga.Core.PLCLinks
+﻿namespace Guga.Core.PLCLinks
 {
     /// <summary>
     /// 电梯
@@ -26,14 +16,6 @@ namespace Guga.Core.PLCLinks
             throw new NotImplementedException();
         }
 
-        public override List<IRule> GetSignalToBusinessRules()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override List<IRule> GetBusinessToSignalRules()
-        {
-            throw new NotImplementedException();
-        }
+       
     }
 }

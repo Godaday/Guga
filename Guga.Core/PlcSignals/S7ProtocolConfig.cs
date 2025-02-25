@@ -1,5 +1,5 @@
 ﻿using Guga.Core.Interfaces;
-using Guga.Core.Models;
+using Guga.Models.Collector;
 
 namespace Guga.Core.PlcSignals
 {

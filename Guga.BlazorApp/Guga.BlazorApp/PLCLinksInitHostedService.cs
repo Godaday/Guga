@@ -1,14 +1,13 @@
 ﻿using ColinChang.RedisHelper;
 using Guga.Collector;
-using Guga.Collector;
-using Guga.Collector.ConfigModel;
 using Guga.Collector.Interfaces;
 using Guga.Collector.Services;
-using Guga.Core.Enums;
 using Guga.Core.Interfaces;
-using Guga.Core.Models;
 using Guga.Core.PLCLinks;
 using Guga.Core.PlcSignals;
+using Guga.Models.Collector;
+using Guga.Models.Enums;
+using Guga.Options.Collector;
 using Guga.Redis.ConfigModels;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -306,11 +305,11 @@ namespace Guga.BlazorApp
                             if (!string.IsNullOrEmpty(signal))
                             {
                                 IPlcSignal plcSignal = null;
-                                if (plclink.plclinkInfo.ProtocolType_ == Core.Enums.ProtocolType.S7)
+                                if (plclink.plclinkInfo.ProtocolType_ == ProtocolType.S7)
                                 {
                                     plcSignal = JsonConvert.DeserializeObject<S7Signal>(signal);
                                 }
-                                else if (plclink.plclinkInfo.ProtocolType_ == Core.Enums.ProtocolType.Modbus)
+                                else if (plclink.plclinkInfo.ProtocolType_ == ProtocolType.Modbus)
                                 {
                                     plcSignal = JsonConvert.DeserializeObject<ModbusSignal>(signal);
                                 }

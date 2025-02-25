@@ -1,9 +1,6 @@
-﻿
-using ColinChang.RedisHelper;
-using Guga.Collector.ConfigModel;
-using Guga.Collector.Interfaces;
+﻿using Guga.Collector.Interfaces;
 using Guga.Collector.Services;
-using Microsoft.Extensions.Configuration;
+using Guga.Options.Collector;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using PLCCollect.Collector.Interfaces;

@@ -1,27 +1,8 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using Guga.Collector;
-using Guga.Collector.Services;
-using Guga.Core.PLCLinks;
-using Guga.Core.Enums;
-using Guga.Core.Interfaces;
-using Guga.Core.Models;
-using Guga.Core.PlcSignals;
-using MediatR;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualBasic;
-using S7.Net;
-using System.Reflection;
-using Guga.Collector.Interfaces;
-using ColinChang.RedisHelper;
-using Guga.Redis.ConfigModels;
-
 //var serviceCollection = new ServiceCollection();
 //serviceCollection.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(AppDomain.CurrentDomain.GetAssemblies()));
 //serviceCollection.AddTransient<IPLCLinkFactory, PLCLinkFactory>();
-
-
-
 
 Console.WriteLine($"-------------");
 //var collectionProvider = serviceCollection.BuildServiceProvider();

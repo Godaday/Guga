@@ -50,10 +50,11 @@ else
                 <MudSpacer />
             </ToolBarContent>
             <Columns>
-                <PropertyColumn Property="x => x.SignalName"  />
-                <PropertyColumn Property="x => x.ReadCycle" />
+               @*  <PropertyColumn Property="x => x.SignalName"   *@
+                      <PropertyColumn Property="x => x.Address"   CellStyle="width:20%"  Title="IO地址"   />
+                <PropertyColumn Property="x => x.ReadCycle" Title="采集频率" CellStyle="width:20%" />
                 <PropertyColumn Property="x => x.GetValue()"  Title="Value"/>
-                <PropertyColumn Property='x => x.CollectTime.ToString("yyyy-MM-dd HH:mm:ss.fff")' />
+                <PropertyColumn Property='x => x.CollectTime.ToString("yyyy-MM-dd HH:mm:ss.fff")' Title="采集时间" CellStyle="width:20%" />
               
             </Columns>
         </MudDataGrid>

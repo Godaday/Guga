@@ -1,8 +1,7 @@
 ﻿using Guga.Collector.Interfaces;
-using Guga.Core.Enums;
 using Guga.Core.Interfaces;
+using Guga.Models.Enums;
 using PLCCollect.Collector.Interfaces;
-using System.Threading;
 
 namespace Guga.Collector.Services
 {

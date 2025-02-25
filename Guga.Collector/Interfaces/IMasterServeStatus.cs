@@ -1,13 +1,8 @@
-﻿using Guga.Collector.ConfigModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Guga.Options.Collector;
 
 namespace PLCCollect.Collector.Interfaces
 {
-   public interface  IMasterServeStatus
+    public interface  IMasterServeStatus
     {
         /// <summary>
         /// 服务相关配置

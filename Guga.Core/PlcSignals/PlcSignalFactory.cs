@@ -1,6 +1,6 @@
-﻿using Guga.Core.Enums;
-using Guga.Core.Interfaces;
-using Guga.Core.Models;
+﻿using Guga.Core.Interfaces;
+using Guga.Models.Collector;
+using Guga.Models.Enums;
 
 
 namespace Guga.Core.PlcSignals
