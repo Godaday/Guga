@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="S7netplus" Version="0.20.0" />
+    <PackageReference Include="SqlSugarCore" Version="5.1.4.178" />
   </ItemGroup>
 
 </Project>

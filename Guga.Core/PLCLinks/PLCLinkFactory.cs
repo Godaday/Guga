@@ -1,10 +1,4 @@
 ﻿using Guga.Core.Interfaces;
-using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Guga.Core.PLCLinks
 {
@@ -14,12 +8,7 @@ namespace Guga.Core.PLCLinks
     /// </summary>
     public class PLCLinkFactory : IPLCLinkFactory
     {
-        private readonly IMediator _mediator;
-
-        public PLCLinkFactory(IMediator mediator)
-        {
-            _mediator = mediator;
-        }
+     
         /// <summary>
         /// 创建具体的链路对象
         /// </summary>
@@ -30,7 +19,7 @@ namespace Guga.Core.PLCLinks
         {
             var plclink = new T
             {
-                _mediator = _mediator
+                
             };
             //var plclink = new T();
             configure?.Invoke(plclink);

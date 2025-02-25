@@ -3,10 +3,12 @@ using Guga.BlazorApp;
 using Guga.BlazorApp.Components;
 using Guga.Collector;
 using Guga.Core;
+using Guga.Core.Init;
 using Guga.Options.Collector;
 using Guga.Redis;
 using Guga.Redis.ConfigModels;
 using MudBlazor.Services;
+using SqlSugar;
 
 var builder = WebApplication.CreateBuilder(args);
 //注册MudBlazor服务
@@ -24,7 +26,20 @@ builder.Services.AddGugaCollectorServices();//采集器
 // 注册链路初始化服务
 builder.Services.AddHostedService<PLCLinksInitHostedService>();
 
+// MySQL 连接字符串
+var connectionString = builder.Configuration.GetConnectionString("MySQL");
 
+// 注册 SqlSugar
+builder.Services.AddSingleton<ISqlSugarClient>(s =>
+{
+    return new SqlSugarClient(new ConnectionConfig()
+    {
+        ConnectionString = connectionString,
+        DbType = DbType.MySql,    // 数据库类型
+        IsAutoCloseConnection = true, // 自动释放
+        InitKeyType = InitKeyType.Attribute // 通过特性识别主键
+    });
+});
 
 
 // Add services to the container.
@@ -33,7 +48,12 @@ builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
 
 var app = builder.Build();
-
+//IAM  code First
+using (var scope = app.Services.CreateScope())
+{
+    var dbInitializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializer>();
+    dbInitializer.Init();
+}
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

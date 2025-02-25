@@ -1,6 +1,5 @@
 ﻿using Guga.Core.Interfaces;
 using Guga.Models.Collector;
-using MediatR;
 
 namespace Guga.Core.PLCLinks
 {
@@ -9,10 +8,7 @@ namespace Guga.Core.PLCLinks
     /// </summary>
     public abstract class PLCLink: IPLCLink
     {
-        /// <summary>
-        /// Mediator
-        /// </summary>
-        public IMediator _mediator { get; set; }
+     
       
         /// <summary>
         /// 链路基础信息
